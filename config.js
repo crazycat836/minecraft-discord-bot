@@ -4,7 +4,7 @@
 
 export default {
   bot: {
-    token: process.env.DISCORD_BOT_TOKEN || 'YOUR_BOT_TOKEN_HERE',
+    token: process.env.DISCORD_BOT_TOKEN,
     presence: {
       enabled: true,
       activity: 'Playing', // Options: Playing, Listening, Watching, Competing.
@@ -19,7 +19,7 @@ export default {
     },
   },
   mcserver: {
-    ip: process.env.MC_SERVER_IP || 'YOUR_SERVER_IP_HERE',
+    ip: process.env.MC_SERVER_IP,
     port: parseInt(process.env.MC_SERVER_PORT) || 25565,
     type: process.env.MC_SERVER_TYPE || 'java',
     name: process.env.MC_SERVER_NAME,
@@ -42,25 +42,25 @@ export default {
     },
     logging: {
       timezone: '',
-      inviteLink: true,
-      debug: true,
-      error: true,
-      serverInfo: true,
+      inviteLink: process.env.INVITE_LINK_ENABLED === 'true',
+      debug: process.env.DEBUG_MODE === 'true',
+      error: process.env.ERROR_LOGGING_ENABLED === 'true',
+      serverInfo: process.env.SERVER_INFO_LOGGING_ENABLED === 'true',
     },
   },
   autoChangeStatus: {
-    enabled: process.env.AUTO_CHANGE_STATUS_ENABLED === 'true' || true,
+    enabled: process.env.AUTO_CHANGE_STATUS_ENABLED === 'true',
     updateInterval: parseInt(process.env.UPDATE_INTERVAL) || 60, // in seconds
-    adminOnly: process.env.ADMIN_ONLY === 'true' || true,
-    playerAvatarEmoji: process.env.PLAYER_AVATAR_EMOJI === 'true' || true,
-    guildID: process.env.DISCORD_GUILD_ID || 'YOUR_GUILD_ID_HERE',
-    isOnlineCheck: process.env.IS_ONLINE_CHECK === 'true' || true,
+    adminOnly: process.env.ADMIN_ONLY === 'true',
+    playerAvatarEmoji: process.env.PLAYER_AVATAR_EMOJI === 'true',
+    guildID: process.env.DISCORD_GUILD_ID,
+    isOnlineCheck: process.env.IS_ONLINE_CHECK === 'true',
   },
   playerCountCH: {
-    enabled: process.env.PLAYER_COUNT_ENABLED === 'true' || true,
+    enabled: process.env.PLAYER_COUNT_ENABLED === 'true',
     updateInterval: parseInt(process.env.PLAYER_COUNT_UPDATE_INTERVAL) || 60, // in seconds
-    guildID: process.env.DISCORD_GUILD_ID || 'YOUR_GUILD_ID_HERE',
-    channelId: process.env.STATS_CHANNEL_ID || 'YOUR_CHANNEL_ID_HERE',
+    guildID: process.env.DISCORD_GUILD_ID,
+    channelId: process.env.STATS_CHANNEL_ID,
     onlineText: process.env.ONLINE_TEXT || '🟢 {playeronline}/{playermax} active players',
     offlineText: process.env.OFFLINE_TEXT || '🔴 Offline',
   },
