@@ -77,6 +77,8 @@ A Discord bot that bridges your Minecraft server with Discord, providing real-ti
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
+Please note that this project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. By contributing, you agree that your contributions will be licensed under the same terms.
+
 ## Support
 
 If you encounter any problems or have questions, please:
