@@ -15,7 +15,7 @@ A Discord bot that bridges your Minecraft server with Discord, providing real-ti
 ## Features
 
 - **Highly Customizable**: Take full control of the bot and tailor its configuration to meet your unique requirements.
-- **Multilingual Support**: `English`, `Spanish`, `German`, `French`, `Portuguese`, `Russian` and `Ukrainian` translations with customizable language settings for each features.
+- **Multilingual Support**: `English`, `Spanish`, `German`, `French`, `Portuguese`, `Russian`, `Ukrainian` and `Traditional Chinese` translations with customizable language settings for each features.
 - **Free Hosting Compatibility**: Support for free server hosting providers like Aternos, Falixnodes etc.
 - **Anti-Crash System:** This feature safeguards the bot, ensuring its stability and uninterrupted operation by preventing crashes and unexpected halts.
 - **Dynamic Status Message**: Auto-updating status messages with integrated player list .
@@ -55,7 +55,7 @@ docker run -d \
 ### Manual Installation
 
 1. **Requirements:**
-   - Install [Node.js](https://nodejs.org/en/download/current) (v16.9.0 or higher)
+   - Install [Node.js](https://nodejs.org/en/download/current) (v23.0.0 or higher)
    - _(Recommended: [Visual Studio Code](https://code.visualstudio.com/Download))_
 
 2. **Install Dependencies:**
@@ -117,8 +117,11 @@ npm run dev
 
 - `npm start` - Start the bot
 - `npm run dev` - Start the bot in development mode with auto-reload
-- `npm run lint` - Run ESLint to check code style
-- `npm run format` - Format code with Prettier
+- `npm run docker:build` - Build Docker image
+- `npm run docker:build:amd64` - Build Docker image for AMD64 platform
+- `npm run docker:push` - Push Docker image to Docker Hub
+- `npm run docker:run` - Start container with docker-compose
+- `npm run docker:stop` - Stop and remove container
 
 ## Versioning
 

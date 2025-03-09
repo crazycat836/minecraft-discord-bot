@@ -15,7 +15,7 @@
 ## 功能特色
 
 - **高度自訂化**：完全掌控機器人，根據您的需求自訂配置。
-- **多語言支援**：支援 `英文`、`西班牙文`、`德文`、`法文`、`葡萄牙文`、`俄文` 和 `烏克蘭文`，每個功能都可以自訂語言設定。
+- **多語言支援**：支援 `英文`、`西班牙文`、`德文`、`法文`、`葡萄牙文`、`俄文`、`烏克蘭文` 和 `繁體中文`，每個功能都可以自訂語言設定。
 - **免費託管相容性**：支援 Aternos、Falixnodes 等免費伺服器託管服務。
 - **防當機系統**：確保機器人穩定運行，防止崩潰和意外停止。
 - **動態狀態訊息**：自動更新的狀態訊息，包含整合的玩家列表。
@@ -117,8 +117,11 @@ npm run dev
 
 - `npm start` - 啟動機器人
 - `npm run dev` - 以開發模式啟動機器人（自動重新載入）
-- `npm run lint` - 執行 ESLint 檢查程式碼風格
-- `npm run format` - 使用 Prettier 格式化程式碼
+- `npm run docker:build` - 建構 Docker 映像檔
+- `npm run docker:build:amd64` - 建構 AMD64 平台的 Docker 映像檔
+- `npm run docker:push` - 將 Docker 映像檔推送到 Docker Hub
+- `npm run docker:run` - 使用 docker-compose 啟動容器
+- `npm run docker:stop` - 停止並移除容器
 
 ## 版本控制
 
