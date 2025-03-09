@@ -4,7 +4,7 @@
 [![Issues](https://img.shields.io/github/issues/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](https://github.com/crazycat836/minecraft-discord-bot/issues)
 [![Latest Release](https://img.shields.io/github/v/release/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](https://github.com/crazycat836/minecraft-discord-bot/releases)
 [![Node Version](https://img.shields.io/node/v/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](package.json)
-[![Docker Pulls](https://img.shields.io/docker/pulls/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](https://hub.docker.com/r/crazycat836/minecraft-discord-bot)
+[![Docker Pulls](https://img.shields.io/docker/pulls/crazycat836/minecraftrobot?style=for-the-badge&color=5D6D7E)](https://hub.docker.com/r/crazycat836/minecraftrobot)
 
 English | [繁體中文](README_zh-TW.md)
 

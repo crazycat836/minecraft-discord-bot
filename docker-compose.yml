@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: crazycat836/minecraft-discord-bot:latest
+    image: crazycat836/minecraftrobot:latest
     container_name: minecraft-discord-bot
     restart: unless-stopped
     environment:

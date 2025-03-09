@@ -48,4 +48,5 @@ EXPOSE 3000
 # Add labels
 LABEL org.opencontainers.image.source="https://github.com/crazycat836/minecraft-discord-bot" \
       org.opencontainers.image.description="Discord bot for Minecraft server monitoring" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.url="https://hub.docker.com/r/crazycat836/minecraftrobot"
