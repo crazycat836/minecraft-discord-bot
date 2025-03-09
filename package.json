@@ -8,6 +8,7 @@
     "dev": "node --watch src/index.js",
     "docker:build": "docker build -t crazycat836/minecraftrobot:latest .",
     "docker:build:amd64": "docker buildx build --platform linux/amd64 -t crazycat836/minecraftrobot:latest --push .",
+    "docker:build:multi": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push .",
     "docker:push": "docker push crazycat836/minecraftrobot:latest",
     "docker:run": "docker-compose up -d",
     "docker:stop": "docker-compose down"

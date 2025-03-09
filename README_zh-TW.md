@@ -117,8 +117,9 @@ npm run dev
 
 - `npm start` - 啟動機器人
 - `npm run dev` - 以開發模式啟動機器人（自動重新載入）
-- `npm run docker:build` - 建構 Docker 映像檔
+- `npm run docker:build` - 建構您平台的 Docker 映像檔
 - `npm run docker:build:amd64` - 建構 AMD64 平台的 Docker 映像檔
+- `npm run docker:build:multi` - 建構多平台的 Docker 映像檔（AMD64、ARM64）
 - `npm run docker:push` - 將 Docker 映像檔推送到 Docker Hub
 - `npm run docker:run` - 使用 docker-compose 啟動容器
 - `npm run docker:stop` - 停止並移除容器

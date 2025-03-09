@@ -117,8 +117,9 @@ npm run dev
 
 - `npm start` - Start the bot
 - `npm run dev` - Start the bot in development mode with auto-reload
-- `npm run docker:build` - Build Docker image
+- `npm run docker:build` - Build Docker image for your platform
 - `npm run docker:build:amd64` - Build Docker image for AMD64 platform
+- `npm run docker:build:multi` - Build Docker image for multiple platforms (AMD64, ARM64)
 - `npm run docker:push` - Push Docker image to Docker Hub
 - `npm run docker:run` - Start container with docker-compose
 - `npm run docker:stop` - Stop and remove container
