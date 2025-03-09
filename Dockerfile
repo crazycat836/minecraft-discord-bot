@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.4
+
 # Build stage
 FROM node:23-alpine AS builder
 
@@ -7,43 +9,63 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with cache mount
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline
 
-# Copy source code
-COPY . .
+# Copy only necessary files
+COPY src ./src
+COPY translation ./translation
+COPY config.js ./
 
 # Production stage
-FROM node:23-alpine
+FROM node:23-alpine AS runner
 
-# Install tini for proper signal handling
-RUN apk add --no-cache tini
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
+# Install tini and create non-root user in one layer
+RUN apk add --no-cache tini && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs
 
-# Set working directory
+# Set working directory and switch to non-root user
 WORKDIR /app
+USER nodejs
 
 # Copy built files from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app ./
 
 # Set environment variables
 ENV NODE_ENV=production \
-    PORT=3000
-
-# Switch to non-root user
-USER nodejs
+    # Discord Bot Settings
+    DISCORD_BOT_TOKEN="" \
+    DISCORD_GUILD_ID="" \
+    STATS_CHANNEL_ID="" \
+    # Minecraft Server Settings
+    MC_SERVER_IP="" \
+    MC_SERVER_PORT="25565" \
+    MC_SERVER_TYPE="java" \
+    MC_SERVER_NAME="" \
+    MC_SERVER_VERSION="" \
+    MC_SERVER_ICON="https://i.imgur.com/6Msem8Q.png" \
+    MC_SERVER_SITE="" \
+    # Language Settings
+    LANGUAGE_MAIN="zh-TW" \
+    # Feature Toggles
+    DEBUG_MODE="false" \
+    ERROR_LOGGING_ENABLED="true" \
+    SERVER_INFO_LOGGING_ENABLED="true" \
+    AUTO_CHANGE_STATUS_ENABLED="true" \
+    UPDATE_INTERVAL="60" \
+    ADMIN_ONLY="false" \
+    PLAYER_AVATAR_EMOJI="true" \
+    # Player Count Feature
+    PLAYER_COUNT_ENABLED="true" \
+    PLAYER_COUNT_UPDATE_INTERVAL="60"
 
 # Use tini as entrypoint
 ENTRYPOINT ["/sbin/tini", "--"]
 
 # Start the bot
 CMD ["npm", "start"]
-
-# Document exposed port
-EXPOSE 3000
 
 # Add labels
 LABEL org.opencontainers.image.source="https://github.com/crazycat836/minecraft-discord-bot" \
