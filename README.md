@@ -2,8 +2,15 @@
 
 [![License](https://img.shields.io/github/license/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](https://github.com/crazycat836/minecraft-discord-bot/issues)
+[![Latest Release](https://img.shields.io/github/v/release/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](https://github.com/crazycat836/minecraft-discord-bot/releases)
+[![Node Version](https://img.shields.io/node/v/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](package.json)
+[![Docker Pulls](https://img.shields.io/docker/pulls/crazycat836/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](https://hub.docker.com/r/crazycat836/minecraft-discord-bot)
+
+English | [繁體中文](README_zh-TW.md)
 
 A Discord bot that bridges your Minecraft server with Discord, providing real-time server status, player count, and various useful commands.
+
+[Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md) | [Documentation]()
 
 ## Features
 
@@ -32,8 +39,23 @@ A Discord bot that bridges your Minecraft server with Discord, providing real-ti
 
 ## Installation
 
+### Quick Start with Docker
+
+```bash
+docker run -d \
+  --name minecraft-discord-bot \
+  -e DISCORD_BOT_TOKEN=your_token \
+  -e DISCORD_GUILD_ID=your_guild_id \
+  -e MC_SERVER_NAME=your_server_name \
+  -e MC_SERVER_VERSION=your_server_version \
+  -e MC_SERVER_IP=your_server_ip \
+  crazycat836/minecraft-discord-bot
+```
+
+### Manual Installation
+
 1. **Requirements:**
-   - Install [Node.js](https://nodejs.org/en/download/current)
+   - Install [Node.js](https://nodejs.org/en/download/current) (v16.9.0 or higher)
    - _(Recommended: [Visual Studio Code](https://code.visualstudio.com/Download))_
 
 2. **Install Dependencies:**
@@ -73,6 +95,35 @@ A Discord bot that bridges your Minecraft server with Discord, providing real-ti
    node .
    ```
 
+## Development
+
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/crazycat836/minecraft-discord-bot.git
+
+# Enter the project directory
+cd minecraft-discord-bot
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Available Scripts
+
+- `npm start` - Start the bot
+- `npm run dev` - Start the bot in development mode with auto-reload
+- `npm run lint` - Run ESLint to check code style
+- `npm run format` - Format code with Prettier
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/crazycat836/minecraft-discord-bot/tags).
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
@@ -89,7 +140,7 @@ If you encounter any problems or have questions, please:
 
 **Technologies used in the project**:
 
-- **[Node.js](https://nodejs.org/en/download)**
-- **[Discord.js](https://discord.js.org/)**
-- **[node-mcstatus](https://www.npmjs.com/package/node-mcstatus)**
-- **[CommandKit](https://commandkit.js.org/)**
+- **[Node.js](https://nodejs.org/en/download)** - JavaScript runtime
+- **[Discord.js](https://discord.js.org/)** - Discord API framework
+- **[node-mcstatus](https://www.npmjs.com/package/node-mcstatus)** - Minecraft server status checker
+- **[CommandKit](https://commandkit.js.org/)** - Command framework
