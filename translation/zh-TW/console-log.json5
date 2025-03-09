@@ -1,0 +1,78 @@
+// GitHub: https://github.com/crazycat836/minecraft-discord-bot
+// Traditional Chinese Translation (zh-TW) by crazycat836
+
+{
+  // 控制台日誌的翻譯
+  startup: {
+    // 變數：{botName}
+    botStarting: '正在啟動 {botName}...',
+    // 變數：{botName}
+    botStarted: '{botName} 已啟動！',
+    // 變數：{botName}
+    botStopped: '{botName} 已停止！',
+    // 變數：{botName}
+    botReady: '{botName} 已就緒！',
+    // 變數：{botName}
+    botError: '{botName} 發生錯誤！',
+  },
+  config: {
+    // 變數：{configName}
+    configLoaded: '已載入配置：{configName}',
+    // 變數：{configName}
+    configError: '載入配置時發生錯誤：{configName}',
+    // 變數：{configName}
+    configSaved: '已儲存配置：{configName}',
+    // 變數：{configName}
+    configNotFound: '找不到配置：{configName}',
+  },
+  commands: {
+    // 變數：{commandName}
+    commandLoaded: '已載入指令：{commandName}',
+    // 變數：{commandName}
+    commandError: '載入指令時發生錯誤：{commandName}',
+    // 變數：{commandName}
+    commandExecuted: '已執行指令：{commandName}',
+    // 變數：{commandName}
+    commandNotFound: '找不到指令：{commandName}',
+  },
+  events: {
+    // 變數：{eventName}
+    eventLoaded: '已載入事件：{eventName}',
+    // 變數：{eventName}
+    eventError: '載入事件時發生錯誤：{eventName}',
+    // 變數：{eventName}
+    eventExecuted: '已執行事件：{eventName}',
+    // 變數：{eventName}
+    eventNotFound: '找不到事件：{eventName}',
+  },
+  minecraft: {
+    // 變數：{serverName}
+    serverConnected: '已連接到 Minecraft 伺服器：{serverName}',
+    // 變數：{serverName}
+    serverDisconnected: '已斷開與 Minecraft 伺服器的連接：{serverName}',
+    // 變數：{serverName}
+    serverError: '連接到 Minecraft 伺服器時發生錯誤：{serverName}',
+    // 變數：{serverName}
+    serverNotFound: '找不到 Minecraft 伺服器：{serverName}',
+  },
+  discord: {
+    // 變數：{guildName}
+    guildJoined: '已加入 Discord 伺服器：{guildName}',
+    // 變數：{guildName}
+    guildLeft: '已離開 Discord 伺服器：{guildName}',
+    // 變數：{guildName}
+    guildError: '處理 Discord 伺服器時發生錯誤：{guildName}',
+    // 變數：{guildName}
+    guildNotFound: '找不到 Discord 伺服器：{guildName}',
+  },
+  database: {
+    // 變數：{databaseName}
+    databaseConnected: '已連接到資料庫：{databaseName}',
+    // 變數：{databaseName}
+    databaseDisconnected: '已斷開與資料庫的連接：{databaseName}',
+    // 變數：{databaseName}
+    databaseError: '連接到資料庫時發生錯誤：{databaseName}',
+    // 變數：{databaseName}
+    databaseNotFound: '找不到資料庫：{databaseName}',
+  },
+} 

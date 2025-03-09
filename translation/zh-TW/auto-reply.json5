@@ -1,0 +1,23 @@
+// GitHub: https://github.com/crazycat836/minecraft-discord-bot
+// Traditional Chinese Translation (zh-TW) by crazycat836
+
+{
+  // 自動回覆功能的翻譯
+  version: {
+    // 使用 {version} 來獲取配置中的版本
+    replyText: "伺服器版本：**`{version}`**",
+  },
+  ip: {
+    // 使用 {ip} 表示 IP，{port} 表示端口
+    replyText: '**IP：`{ip}`\n端口：`{port}`**',
+  },
+  site: {
+    // 使用 {site} 表示配置中的網站連結
+    replyText: "伺服器網站：**<{site}>**",
+  },
+  status: {
+    // 使用 {playerOnline} 表示在線玩家數量，{playerMax} 表示最大玩家數量。這只在 onlineReply 中有效
+    onlineReply: '伺服器目前**`🟢在線`**，有 **`{playerOnline}/{playerMax}`** 位玩家在線',
+    offlineReply: '伺服器目前**`🔴離線`**',
+  },
+} 

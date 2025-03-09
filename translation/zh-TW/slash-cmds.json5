@@ -1,0 +1,44 @@
+// GitHub: https://github.com/crazycat836/minecraft-discord-bot
+// Traditional Chinese Translation (zh-TW) by crazycat836
+
+{
+  // 斜線指令的翻譯
+  ip: {
+    name: 'ip',
+    description: '取得伺服器的 IP 地址',
+  },
+  motd: {
+    name: 'motd',
+    description: '取得伺服器的每日訊息',
+  },
+  players: {
+    name: 'players',
+    description: '顯示目前在線的玩家列表',
+  },
+  status: {
+    name: 'status',
+    description: '檢查伺服器的當前狀態',
+  },
+  version: {
+    name: 'version',
+    description: '取得伺服器的版本',
+  },
+  site: {
+    name: 'site',
+    description: '取得伺服器的網站連結',
+  },
+  help: {
+    name: 'help',
+    description: '顯示所有可用的指令',
+    options: {
+      command: {
+        name: 'command',
+        description: '要查看的指令名稱',
+      },
+    },
+  },
+  info: {
+    name: 'info',
+    description: '顯示機器人的資訊與統計',
+  },
+} 
