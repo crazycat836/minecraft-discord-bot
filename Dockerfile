@@ -1,17 +1,51 @@
-# Use the official Node.js base image
-FROM node:23-slim
+# Build stage
+FROM node:23-alpine AS builder
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available) to the working directory inside the container
+# Copy package files
 COPY package*.json ./
 
-# Install project dependencies
-RUN npm install
+# Install dependencies
+RUN npm ci
 
-# Copy all project files to the container
+# Copy source code
 COPY . .
 
-# Set the command to run when the container starts (can be modified according to the scripts in package.json)
+# Production stage
+FROM node:23-alpine
+
+# Install tini for proper signal handling
+RUN apk add --no-cache tini
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Set working directory
+WORKDIR /app
+
+# Copy built files from builder stage
+COPY --from=builder --chown=nodejs:nodejs /app ./
+
+# Set environment variables
+ENV NODE_ENV=production \
+    PORT=3000
+
+# Switch to non-root user
+USER nodejs
+
+# Use tini as entrypoint
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the bot
 CMD ["npm", "start"]
+
+# Document exposed port
+EXPOSE 3000
+
+# Add labels
+LABEL org.opencontainers.image.source="https://github.com/crazycat836/minecraft-discord-bot" \
+      org.opencontainers.image.description="Discord bot for Minecraft server monitoring" \
+      org.opencontainers.image.licenses="MIT"
