@@ -52,6 +52,54 @@ docker run -d \
   crazycat836/minecraft-discord-bot
 ```
 
+### Docker Environment Variables
+
+There are several ways to set environment variables when using Docker:
+
+1. **Using command line arguments:**
+   ```bash
+   docker run -d \
+     -e DISCORD_BOT_TOKEN=your_token \
+     -e DISCORD_GUILD_ID=your_guild_id \
+     -e MC_SERVER_NAME="Your Server Name" \
+     -e MC_SERVER_VERSION=1.20.4 \
+     -e MC_SERVER_IP=mc.example.com \
+     crazycat836/minecraft-discord-bot
+   ```
+
+2. **Using a .env file with docker-compose:**
+   Create a `.env` file in the same directory as your `docker-compose.yml`:
+   ```env
+   DISCORD_BOT_TOKEN=your_token
+   DISCORD_GUILD_ID=your_guild_id
+   MC_SERVER_NAME=Your Server Name
+   MC_SERVER_VERSION=1.20.4
+   MC_SERVER_IP=mc.example.com
+   ```
+   
+   Then in your `docker-compose.yml`:
+   ```yaml
+   version: '3.8'
+   services:
+     bot:
+       image: crazycat836/minecraft-discord-bot
+       environment:
+         - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+         - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+         - MC_SERVER_NAME=${MC_SERVER_NAME}
+         - MC_SERVER_VERSION=${MC_SERVER_VERSION}
+         - MC_SERVER_IP=${MC_SERVER_IP}
+   ```
+   
+   Run with: `docker-compose up -d`
+
+3. **Using Docker environment file:**
+   ```bash
+   docker run --env-file .env -d crazycat836/minecraft-discord-bot
+   ```
+
+For a complete list of available environment variables, see the `.env.example` file in the repository.
+
 ### Manual Installation
 
 1. **Requirements:**

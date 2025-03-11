@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import { Client, IntentsBitField, EmbedBuilder } from 'discord.js';
 import { statusBedrock, statusJava } from 'node-mcstatus';
 import config from '../config.js';
@@ -8,6 +10,19 @@ import process from 'node:process';
 import json5 from 'json5';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import serverDataManager from './services/serverDataManager.js';
+
+// Debug: Log environment variables to verify they are loaded
+console.log(chalk.blue('Environment Variables Debug:'));
+console.log(chalk.green('DISCORD_BOT_TOKEN exists:'), !!process.env.DISCORD_BOT_TOKEN);
+console.log(chalk.green('MC_SERVER_NAME:'), process.env.MC_SERVER_NAME || 'Not set');
+console.log(chalk.green('MC_SERVER_VERSION:'), process.env.MC_SERVER_VERSION || 'Not set');
+
+// Debug: Log config object to verify it's correctly populated
+console.log(chalk.blue('Config Object Debug:'));
+console.log(chalk.green('config.bot.token exists:'), !!config.bot.token);
+console.log(chalk.green('config.mcserver.name:'), config.mcserver.name || 'Not set');
+console.log(chalk.green('config.mcserver.version:'), config.mcserver.version || 'Not set');
 
 // ---------------------
 // Global Variables & Setup
@@ -92,7 +107,10 @@ const cmdSlashTranslation = json5.parse(cmdSlashContents);
   }
 
   checkError(!isTimeZoneSupported(), consoleLogTranslation.checkErrorConfig.timeZone);
-  checkError(config.bot.token.startsWith('your-bot-token-here'), consoleLogTranslation.checkErrorConfig.botToken);
+  
+  // Check if token is missing or has default value
+  checkError(!config.bot.token || config.bot.token === '' || config.bot.token.startsWith('your-bot-token-here'), consoleLogTranslation.checkErrorConfig.botToken);
+  
   checkError(
     !['online', 'idle', 'dnd', 'invisible'].includes(config.bot.presence.status.online && config.bot.presence.status.offline),
     consoleLogTranslation.checkErrorConfig.botPresenceStatus
@@ -102,8 +120,13 @@ const cmdSlashTranslation = json5.parse(cmdSlashContents);
     consoleLogTranslation.checkErrorConfig.botStatusActivity
   );
   checkError(!['java', 'bedrock'].includes(config.mcserver.type), consoleLogTranslation.checkErrorConfig.mcType);
-  checkError(!config.mcserver.name, consoleLogTranslation.checkErrorConfig.mcName);
-  checkError(!config.mcserver.version, consoleLogTranslation.checkErrorConfig.mcVersion);
+  
+  // Check if name is missing or empty
+  checkError(!config.mcserver.name || config.mcserver.name === '', consoleLogTranslation.checkErrorConfig.mcName);
+  
+  // Check if version is missing or empty
+  checkError(!config.mcserver.version || config.mcserver.version === '', consoleLogTranslation.checkErrorConfig.mcVersion);
+  
   checkError(
     config.playerCountCH.enabled && config.playerCountCH.guildID === 'your-guild-id-here',
     consoleLogTranslation.checkErrorConfig.guildID
@@ -203,24 +226,41 @@ function getDebug(debugMessage) {
 
 const getServerDataAndPlayerList = async (dataOnly) => {
   try {
-    const data =
-      config.mcserver.type === 'java'
-        ? await statusJava(config.mcserver.ip, config.mcserver.port)
-        : await statusBedrock(config.mcserver.ip, config.mcserver.port);
-    const isOnline = config.autoChangeStatus.isOnlineCheck ? data.online && data.players.max > 0 : data.online;
-    if (isOnline) {
-      if (dataOnly) return { data, isOnline };
-      const playerListArray = await getPlayersList(data.players);
-      return { data, playerListArray, isOnline };
+    // 使用 serverDataManager 獲取伺服器數據
+    const result = await serverDataManager.getServerData(config);
+    
+    // 添加日誌輸出
+    console.log(`${getDateNow()} | ${chalk.blue('INFO')} | getServerDataAndPlayerList called, dataOnly=${dataOnly}, isOnline=${result?.isOnline}`);
+    
+    if (dataOnly) {
+      return {
+        data: result.data,
+        isOnline: result.isOnline
+      };
+    }
+    
+    if (result.isOnline) {
+      const playerListArray = await getPlayersList(result.data.players);
+      return {
+        data: result.data,
+        playerListArray,
+        isOnline: result.isOnline
+      };
     } else {
-      return { data, playerListArray: [], isOnline };
+      return {
+        data: result.data,
+        playerListArray: [],
+        isOnline: result.isOnline
+      };
     }
   } catch (error) {
-    if (dataOnly) {
-      getError(error, 'fetchServerData');
-      return;
-    }
     getError(error, 'fetchServerDataAndPlayerList');
+    // Return a default object with offline status to prevent destructuring errors
+    return { 
+      data: { online: false, players: { online: 0, max: 0 } }, 
+      playerListArray: [], 
+      isOnline: false 
+    };
   }
 };
 
@@ -281,17 +321,52 @@ const getPlayersListWithEmoji = async (playerListRaw, client) => {
 
 const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEmoji, client) => {
   try {
-    const data = type === 'java' ? await statusJava(ip, port) : await statusBedrock(ip, port);
-    const isOnline = config.autoChangeStatus.isOnlineCheck ? data.online && data.players.max > 0 : data.online;
+    console.log(`${getDateNow()} | ${chalk.blue('INFO')} | Editing status message for ${ip}:${port}`);
+    
+    // 創建一個臨時配置對象，用於獲取特定伺服器的數據
+    const tempConfig = {
+      ...config,
+      mcserver: {
+        ...config.mcserver,
+        ip,
+        port,
+        type
+      }
+    };
+    
+    // 使用 serverDataManager 獲取伺服器數據
+    const result = await serverDataManager.getServerData(tempConfig);
+    console.log(`${getDateNow()} | ${chalk.blue('INFO')} | Server data fetched, isOnline=${result?.isOnline}`);
+    
+    // 如果無法獲取數據，顯示離線狀態
+    if (!result || !result.data) {
+      console.log(`${getDateNow()} | ${chalk.red('ERROR')} | Failed to get server data, showing offline status`);
+      const { offlineStatus } = await import('./embeds.js');
+      await message.edit({ content: '', embeds: [offlineStatus()] });
+      return;
+    }
+    
+    const { data, isOnline } = result;
+    
     const ipBedrock = `IP: \`${ip}\`\nPort: \`${port}\``;
     const portNumber = port === 25565 ? '' : `:\`${port}\``;
     const ipJava = `**IP: \`${ip}\`${portNumber}**`;
     const ipaddress = type === 'bedrock' ? ipBedrock : ipJava;
+    
     if (isOnline) {
-      const playerList =
-        isPlayerAvatarEmoji && config.autoChangeStatus.playerAvatarEmoji
-          ? await getPlayersListWithEmoji(data.players, client)
-          : await getPlayersList(data.players);
+      console.log(`${getDateNow()} | ${chalk.green('SUCCESS')} | Server is online, creating online embed`);
+      let playerList;
+      try {
+        playerList =
+          isPlayerAvatarEmoji && config.autoChangeStatus.playerAvatarEmoji
+            ? await getPlayersListWithEmoji(data.players, client)
+            : await getPlayersList(data.players);
+      } catch (playerListError) {
+        // 如果獲取玩家列表失敗，使用空列表但繼續
+        console.log(`${getDateNow()} | ${chalk.yellow('WARN')} | Failed to get player list: ${playerListError.message}`);
+        playerList = [];
+      }
+      
       function editDescriptionFields(description) {
         const versionStr = type === 'java' ? data.version.name_clean : data.version.name;
         return description
@@ -301,6 +376,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
           .replace(/\{version\}/gi, versionStr)
           .replace(/\{siteText\}/gi, '');
       }
+      
       const description_field_one = editDescriptionFields(embedTranslation.onlineEmbed.description_field_one);
       const description_field_two = editDescriptionFields(embedTranslation.onlineEmbed.description_field_two);
       const title = editDescriptionFields(embedTranslation.onlineEmbed.title);
@@ -314,12 +390,23 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
         .setTimestamp()
         .setFooter({ text: embedTranslation.onlineEmbed.footer });
       await message.edit({ content: '', embeds: [onlineEmbed] });
+      console.log(`${getDateNow()} | ${chalk.green('SUCCESS')} | Status message updated with online status`);
     } else {
+      console.log(`${getDateNow()} | ${chalk.yellow('WARN')} | Server is offline, showing offline status`);
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
     }
   } catch (error) {
+    console.log(`${getDateNow()} | ${chalk.red('ERROR')} | Error editing status message: ${error.message}`);
     getError(error, 'messageEdit');
+    // 嘗試即使在出錯時也顯示離線狀態
+    try {
+      const { offlineStatus } = await import('./embeds.js');
+      await message.edit({ content: '', embeds: [offlineStatus()] });
+    } catch (embedError) {
+      // 如果連顯示離線狀態都失敗，只記錄錯誤
+      console.error('Failed to show offline status:', embedError);
+    }
   }
 };
 

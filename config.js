@@ -4,13 +4,13 @@
 
 export default {
   bot: {
-    token: process.env.DISCORD_BOT_TOKEN,
+    token: process.env.DISCORD_BOT_TOKEN || '',
     presence: {
       enabled: true,
       activity: 'Playing', // Options: Playing, Listening, Watching, Competing.
       text: {
-        online: 'with {playeronline}/{playermax} players',
-        offline: 'Server Offline',
+        online: '與 {playeronline}/{playermax} 位玩家一起遊玩',
+        offline: '伺服器離線中',
       },
       status: {
         online: 'online',
@@ -19,11 +19,11 @@ export default {
     },
   },
   mcserver: {
-    ip: process.env.MC_SERVER_IP,
+    ip: process.env.MC_SERVER_IP || '',
     port: parseInt(process.env.MC_SERVER_PORT) || 25565,
     type: process.env.MC_SERVER_TYPE || 'java',
-    name: process.env.MC_SERVER_NAME,
-    version: process.env.MC_SERVER_VERSION,
+    name: process.env.MC_SERVER_NAME || '',
+    version: process.env.MC_SERVER_VERSION || '',
     icon: process.env.MC_SERVER_ICON || 'https://i.imgur.com/6Msem8Q.png',
     site: process.env.MC_SERVER_SITE || '',
   },
