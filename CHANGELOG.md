@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2024-03-11
+
+### Added
+- Added dedicated translation files for bot status and player count text
+- Added support for automatic language-based text in bot status and player count channels
+
+### Changed
+- Improved multilingual system to use language-specific text for bot status
+- Removed hardcoded text options in favor of language-based translations
+- Updated documentation to reflect new multilingual features
+- Enhanced Docker configuration with clearer language settings
+
+### Fixed
+- Fixed inconsistencies in language handling between different features
+- Improved fallback mechanism for language loading
+
 ## [1.0.3] - 2024-03-12
 
 ### Changed
@@ -62,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Player avatar support
 - Colorful console logging
 
+[1.0.4]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.4
 [1.0.3]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.3
 [1.0.2]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.2
 [1.0.1]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.1

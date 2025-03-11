@@ -1,7 +1,11 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 // Import required functions and translation from other modules
 import { botInfoEmbed } from '../embeds.js';
-import { cmdSlashTranslation, getError } from '../index.js';
+import { cmdSlashTranslation } from '../index.js';
+import logger from '../utils/logger.js';
+import config from '../../config.js';
+
+const { commands } = config;
 
 export default {
   data: new SlashCommandBuilder()
@@ -15,25 +19,20 @@ export default {
       // Defer reply and mark it as ephemeral (visible only to the user)
       await interaction.deferReply({ eflags: MessageFlags.Ephemeral });
 
-      // Retrieve bot information embed
-      const infoEmbed = await botInfoEmbed(interaction, client);
-
-      // Edit the deferred reply with the bot info embed
-      await interaction.editReply({
-        embeds: [infoEmbed],
-      });
+      // Get bot info embed and reply with it
+      const embed = await botInfoEmbed(interaction, client);
+      await interaction.editReply({ embeds: [embed], ephemeral: true });
     } catch (error) {
-      // Follow up with an ephemeral error message if something goes wrong
-      await interaction.followUp({
-        content: cmdSlashTranslation.info.errorReply,
-        flags: MessageFlags.Ephemeral,
+      logger.error('Command: Error executing info command', error);
+      await interaction.editReply({
+        content: 'An error occurred while executing this command.',
+        ephemeral: true,
       });
-      getError(error, 'infoCmd');
     }
   },
 
   options: {
     // If set to true, the command will be removed from Discord
-    deleted: false,
+    deleted: !commands.info.enabled || !commands.slashCommands,
   },
 };

@@ -12,17 +12,28 @@ import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import serverDataManager from './services/serverDataManager.js';
 
+// Import the new logger system
+import logger, { LogLevel } from './utils/logger.js';
+import { configureLogger } from './utils/loggerConfig.js';
+import loggerMigration from './utils/loggerMigration.js';
+
+// Configure the logger based on the application config
+configureLogger(config);
+
+// For backward compatibility, extract the migration functions
+const { getWarning: migrationGetWarning, getDebug: migrationGetDebug } = loggerMigration;
+
 // Debug: Log environment variables to verify they are loaded
-console.log(chalk.blue('Environment Variables Debug:'));
-console.log(chalk.green('DISCORD_BOT_TOKEN exists:'), !!process.env.DISCORD_BOT_TOKEN);
-console.log(chalk.green('MC_SERVER_NAME:'), process.env.MC_SERVER_NAME || 'Not set');
-console.log(chalk.green('MC_SERVER_VERSION:'), process.env.MC_SERVER_VERSION || 'Not set');
+logger.debug('System: Environment variables loaded');
+logger.debug(`DISCORD_BOT_TOKEN exists: ${!!process.env.DISCORD_BOT_TOKEN}`);
+logger.debug(`MC_SERVER_NAME: ${process.env.MC_SERVER_NAME || 'Not set'}`);
+logger.debug(`MC_SERVER_VERSION: ${process.env.MC_SERVER_VERSION || 'Not set'}`);
 
 // Debug: Log config object to verify it's correctly populated
-console.log(chalk.blue('Config Object Debug:'));
-console.log(chalk.green('config.bot.token exists:'), !!config.bot.token);
-console.log(chalk.green('config.mcserver.name:'), config.mcserver.name || 'Not set');
-console.log(chalk.green('config.mcserver.version:'), config.mcserver.version || 'Not set');
+logger.debug('Config Object Debug:');
+logger.debug(`config.bot.token exists: ${!!config.bot.token}`);
+logger.debug(`config.mcserver.name: ${config.mcserver.name || 'Not set'}`);
+logger.debug(`config.mcserver.version: ${config.mcserver.version || 'Not set'}`);
 
 // ---------------------
 // Global Variables & Setup
@@ -61,11 +72,11 @@ const getDateNow = () => {
 // ---------------------
 
 process.on('uncaughtException', (error) => {
-  console.log(`${getDateNow()} | ${chalk.redBright('ERROR')} | ${chalk.bold('Uncaught Exception')}:`, error);
+  logger.fatal('Uncaught Exception', error);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.log(`${getDateNow()} | ${chalk.redBright('ERROR')} | ${chalk.bold('Unhandled Rejection')}:`, reason);
+  logger.fatal('Unhandled Rejection', reason);
 });
 
 // ---------------------
@@ -100,7 +111,7 @@ const cmdSlashTranslation = json5.parse(cmdSlashContents);
   }
 
   const errors = [];
-  console.log(chalk.blue(consoleLogTranslation.checkErrorConfig.checkConfigWait));
+  logger.info(consoleLogTranslation.checkErrorConfig.checkConfigWait);
 
   function checkError(condition, errorMessage) {
     if (condition) errors.push(errorMessage);
@@ -132,14 +143,24 @@ const cmdSlashTranslation = json5.parse(cmdSlashContents);
     consoleLogTranslation.checkErrorConfig.guildID
   );
 
-  if (!config.settings.logging.debug) {
+  // Get current environment
+  const env = process.env.NODE_ENV || 'development';
+  
+  // In development or test environments, set intervals to 30 seconds
+  if (env === 'development' || env === 'test') {
+    // Override the intervals in config for development/test environments
+    config.autoChangeStatus.updateInterval = 30;
+    config.playerCountCH.updateInterval = 30;
+    logger.info(`Environment: ${env} - Setting update intervals to 30 seconds for faster testing`);
+  } else {
+    // In production or other environments, check if intervals are at least 60 seconds
     checkError(
       config.autoChangeStatus.updateInterval < 60,
-      'Auto change status updateInterval must be at least 60 seconds.'
+      'Auto change status updateInterval must be at least 60 seconds in production.'
     );
     checkError(
       config.playerCountCH.updateInterval < 60,
-      'Player CH count updateInterval must be at least 60 seconds.'
+      'Player CH count updateInterval must be at least 60 seconds in production.'
     );
   }
 
@@ -167,8 +188,8 @@ const cmdSlashTranslation = json5.parse(cmdSlashContents);
   }
 
   if (errors.length > 0) {
-    console.error(chalk.red(consoleLogTranslation.checkErrorConfig.followingErrors));
-    errors.forEach((errorMsg) => console.log(chalk.hex('#FFA500')(errorMsg)));
+    logger.error(consoleLogTranslation.checkErrorConfig.followingErrors);
+    errors.forEach((errorMsg) => logger.error(chalk.hex('#FFA500')(errorMsg)));
     process.exit(1);
   }
 })();
@@ -202,35 +223,21 @@ const groupPlayerList = (playerListArrayRaw) => {
   return baseEmbed;
 };
 
-function getError(error, errorMsg) {
-  if (config.settings.logging.error) {
-    console.log(
-      `${getDateNow()} | ${chalk.red('ERROR')} | ${chalk.white.bold(consoleLogTranslation.error[errorMsg])}: ${chalk.hex('#FFA500')(error.message)}`
-    );
-  }
-}
-
 function getWarning(warningMessage) {
-  if (config.settings.logging.warning) {
-    console.log(
-      `${chalk.gray(getDateNow())} | ${chalk.hex('#FFA500')('WARNING')} | ${chalk.white.bold(warningMessage)}`
-    );
-  }
+  migrationGetWarning(warningMessage);
 }
 
 function getDebug(debugMessage) {
-  if (config.settings.logging.debug) {
-    console.log(`${chalk.gray(getDateNow())} | ${chalk.yellow('DEBUG')} | ${chalk.white.bold(debugMessage)}`);
-  }
+  migrationGetDebug(debugMessage);
 }
 
 const getServerDataAndPlayerList = async (dataOnly) => {
   try {
-    // 使用 serverDataManager 獲取伺服器數據
+    // Use serverDataManager to get server data
     const result = await serverDataManager.getServerData(config);
     
-    // 添加日誌輸出
-    console.log(`${getDateNow()} | ${chalk.blue('INFO')} | getServerDataAndPlayerList called, dataOnly=${dataOnly}, isOnline=${result?.isOnline}`);
+    // Use the new logger
+    logger.info(`ServerData: Request processed, dataOnly=${dataOnly}, isOnline=${result?.isOnline}`);
     
     if (dataOnly) {
       return {
@@ -240,26 +247,35 @@ const getServerDataAndPlayerList = async (dataOnly) => {
     }
     
     if (result.isOnline) {
-      const playerListArray = await getPlayersList(result.data.players);
-      return {
-        data: result.data,
-        playerListArray,
-        isOnline: result.isOnline
-      };
+      try {
+        const playerListArray = await getPlayersList(result.data.players);
+        return {
+          data: result.data,
+          playerListArray,
+          isOnline: result.isOnline
+        };
+      } catch (playerListError) {
+        logger.error('ServerData: Error getting player list', playerListError);
+        // If getting player list fails, use empty list but continue
+        return {
+          data: result.data,
+          playerListArray: [],
+          isOnline: result.isOnline
+        };
+      }
     } else {
       return {
         data: result.data,
         playerListArray: [],
-        isOnline: result.isOnline
+        isOnline: false
       };
     }
   } catch (error) {
-    getError(error, 'fetchServerDataAndPlayerList');
-    // Return a default object with offline status to prevent destructuring errors
-    return { 
-      data: { online: false, players: { online: 0, max: 0 } }, 
-      playerListArray: [], 
-      isOnline: false 
+    logger.error('ServerData: Failed to get data and player list', error);
+    return {
+      data: null,
+      playerListArray: [],
+      isOnline: false
     };
   }
 };
@@ -278,7 +294,7 @@ const getPlayersList = async (playerListRaw) => {
       ? baseEmbed
       : groupPlayerList(playerListRaw);
   } catch (error) {
-    getError(error, 'playerList');
+    logger.error('Error processing player list', error);
   }
 };
 
@@ -315,15 +331,15 @@ const getPlayersListWithEmoji = async (playerListRaw, client) => {
     return result;
   } catch (error) {
     if (!config.settings.logging.errorLog) return;
-    getError(error, 'playerAvatarEmojiError');
+    logger.error('Error processing player avatar emoji', error);
   }
 };
 
 const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEmoji, client) => {
   try {
-    console.log(`${getDateNow()} | ${chalk.blue('INFO')} | Editing status message for ${ip}:${port}`);
+    logger.info(`StatusMsg: Editing message for ${ip}:${port}`);
     
-    // 創建一個臨時配置對象，用於獲取特定伺服器的數據
+    // Create a temporary config object to get data for a specific server
     const tempConfig = {
       ...config,
       mcserver: {
@@ -334,13 +350,13 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
       }
     };
     
-    // 使用 serverDataManager 獲取伺服器數據
+    // Use serverDataManager to get server data
     const result = await serverDataManager.getServerData(tempConfig);
-    console.log(`${getDateNow()} | ${chalk.blue('INFO')} | Server data fetched, isOnline=${result?.isOnline}`);
+    logger.info(`StatusMsg: Server data fetched, isOnline=${result?.isOnline}`);
     
-    // 如果無法獲取數據，顯示離線狀態
+    // If unable to get data, display offline status
     if (!result || !result.data) {
-      console.log(`${getDateNow()} | ${chalk.red('ERROR')} | Failed to get server data, showing offline status`);
+      logger.error('StatusMsg: Failed to get server data, showing offline status');
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
       return;
@@ -354,7 +370,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
     const ipaddress = type === 'bedrock' ? ipBedrock : ipJava;
     
     if (isOnline) {
-      console.log(`${getDateNow()} | ${chalk.green('SUCCESS')} | Server is online, creating online embed`);
+      logger.info('StatusMsg: Server is online, creating online embed');
       let playerList;
       try {
         playerList =
@@ -362,8 +378,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
             ? await getPlayersListWithEmoji(data.players, client)
             : await getPlayersList(data.players);
       } catch (playerListError) {
-        // 如果獲取玩家列表失敗，使用空列表但繼續
-        console.log(`${getDateNow()} | ${chalk.yellow('WARN')} | Failed to get player list: ${playerListError.message}`);
+        logger.warn('StatusMsg: Failed to get player list', playerListError);
         playerList = [];
       }
       
@@ -390,22 +405,23 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
         .setTimestamp()
         .setFooter({ text: embedTranslation.onlineEmbed.footer });
       await message.edit({ content: '', embeds: [onlineEmbed] });
-      console.log(`${getDateNow()} | ${chalk.green('SUCCESS')} | Status message updated with online status`);
+      logger.info('StatusMsg: Message updated with online status');
     } else {
-      console.log(`${getDateNow()} | ${chalk.yellow('WARN')} | Server is offline, showing offline status`);
+      logger.warn('StatusMsg: Server is offline, showing offline status');
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
     }
   } catch (error) {
-    console.log(`${getDateNow()} | ${chalk.red('ERROR')} | Error editing status message: ${error.message}`);
-    getError(error, 'messageEdit');
-    // 嘗試即使在出錯時也顯示離線狀態
+    logger.error('StatusMsg: Error updating message', error);
+    
     try {
+      // Try to display offline status even when an error occurs
+      logger.error('StatusMsg: Failed to show offline status');
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
-    } catch (embedError) {
-      // 如果連顯示離線狀態都失敗，只記錄錯誤
-      console.error('Failed to show offline status:', embedError);
+    } catch (secondError) {
+      // If even displaying offline status fails, just log the error
+      logger.error('StatusMsg: Failed to show offline status', secondError);
     }
   }
 };
@@ -416,15 +432,14 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
 
 export {
   getServerDataAndPlayerList,
-  getError,
-  getWarning,
-  getDateNow,
-  getDebug,
-  statusMessageEdit,
   getPlayersList,
+  getPlayersListWithEmoji,
+  statusMessageEdit,
   embedTranslation,
-  consoleLogTranslation,
   cmdSlashTranslation,
+  consoleLogTranslation,
+  getWarning,
+  getDebug,
 };
 
 // ---------------------
@@ -439,5 +454,5 @@ new CommandKit({
 });
 
 client.login(config.bot.token).catch((error) => {
-  console.error('Bot login error:', error);
+  logger.error('Bot login error:', error);
 });

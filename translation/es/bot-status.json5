@@ -1,0 +1,15 @@
+// Spanish Translation (es)
+
+{
+  // Translation for bot status and player count channel text
+  botStatus: {
+    // Variables: {playeronline}, {playermax}
+    online: 'Jugando con {playeronline}/{playermax} jugadores',
+    offline: 'El servidor está desconectado',
+  },
+  playerCount: {
+    // Variables: {playeronline}, {playermax}
+    online: '🟢 {playeronline}/{playermax} jugadores activos',
+    offline: '🔴 Desconectado',
+  },
+} 

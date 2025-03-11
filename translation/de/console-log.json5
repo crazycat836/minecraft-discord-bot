@@ -1,9 +1,7 @@
-// GitHub: https://github.com/NooberPro/minecraft-discord-bot
-// Crowdin: https://crowdin.com/project/minecraft-discord-bot
-// Deutsche Übersetzung (de) von AI
+// German Translation (de)
 
 {
-  // Übersetzung für die Konsolenausgabe
+  // Übersetzung für Konsolenausgaben.
   error: {
     playerEmbed: 'Beim Erstellen der Player List Embeds-Nachricht ist ein Fehler aufgetreten.',
     statusEmbed: 'Beim Erstellen der Status-Embeds-Nachricht ist ein Fehler aufgetreten.',

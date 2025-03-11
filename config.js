@@ -8,10 +8,6 @@ export default {
     presence: {
       enabled: true,
       activity: 'Playing', // Options: Playing, Listening, Watching, Competing.
-      text: {
-        online: '與 {playeronline}/{playermax} 位玩家一起遊玩',
-        offline: '伺服器離線中',
-      },
       status: {
         online: 'online',
         offline: 'idle',
@@ -43,9 +39,8 @@ export default {
     logging: {
       timezone: '',
       inviteLink: process.env.INVITE_LINK_ENABLED === 'true',
-      debug: process.env.DEBUG_MODE === 'true',
-      error: process.env.ERROR_LOGGING_ENABLED === 'true',
-      serverInfo: process.env.SERVER_INFO_LOGGING_ENABLED === 'true',
+      logToFile: false,
+      logFilePath: 'logs/app.log',
     },
   },
   autoChangeStatus: {
@@ -61,8 +56,6 @@ export default {
     updateInterval: parseInt(process.env.PLAYER_COUNT_UPDATE_INTERVAL) || 60, // in seconds
     guildID: process.env.DISCORD_GUILD_ID,
     channelId: process.env.STATS_CHANNEL_ID,
-    onlineText: process.env.ONLINE_TEXT || '🟢 {playeronline}/{playermax} active players',
-    offlineText: process.env.OFFLINE_TEXT || '🔴 Offline',
   },
   autoReply: {
     enabled: false,

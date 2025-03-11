@@ -1,11 +1,12 @@
 {
   "name": "minecraft-discord-bot",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A feature-rich and highly customizable Discord bot that provides information about your Minecraft server.",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
+    "start": "NODE_ENV=production node src/index.js",
+    "dev": "NODE_ENV=development node --watch src/index.js",
+    "setup": "cp .env.example .env && echo 'Created .env file from example. Please edit it with your settings.'",
     "docker:build": "docker build -t crazycat836/minecraftrobot:latest .",
     "docker:build:amd64": "docker buildx build --platform linux/amd64 -t crazycat836/minecraftrobot:latest --push .",
     "docker:build:multi": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push .",

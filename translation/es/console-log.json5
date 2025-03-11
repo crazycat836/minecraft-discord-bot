@@ -1,9 +1,7 @@
-// GitHub: https://github.com/NooberPro/minecraft-discord-bot
-// Crowdin: https://crowdin.com/project/minecraft-discord-bot
-// Traducción al español (es) por AI
+// Spanish Translation (es)
 
 {
-  // Traducción para la salida de la consola
+  // Traducción para los mensajes de registro de la consola.
   error: {
     playerEmbed: 'Se produjo un error al crear el mensaje de lista de jugadores integrado.',
     statusEmbed: 'Se produjo un error al crear el mensaje de estado integrado.',

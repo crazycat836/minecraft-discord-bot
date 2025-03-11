@@ -33,3 +33,7 @@ pids
 .vscode/
 *.swp
 *.swo 
+
+# Private configuration files
+docker-compose.private.yml
+release_notes.md 

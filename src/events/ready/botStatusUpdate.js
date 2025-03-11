@@ -1,8 +1,11 @@
 import config from '../../../config.js';
-import { consoleLogTranslation, getDebug, getError } from '../../index.js';
+import { consoleLogTranslation } from '../../index.js';
 import chalk from 'chalk';
 import { ActivityType } from 'discord.js';
 import serverDataManager from '../../services/serverDataManager.js';
+import fs from 'fs';
+import json5 from 'json5';
+import logger from '../../utils/logger.js';
 
 // Define statusEmojis outside the function to avoid recreating it on every call
 const statusEmojis = {
@@ -12,10 +15,37 @@ const statusEmojis = {
   invisible: '⚫',
 };
 
-export default (client) => {
+// Load bot status translations
+const loadBotStatusTranslations = () => {
+  try {
+    const languageMain = config.settings.language.main || 'en';
+    const botStatusFileContent = fs.readFileSync(`./translation/${languageMain}/bot-status.json5`, 'utf8');
+    return json5.parse(botStatusFileContent);
+  } catch (error) {
+    logger.error('BotStatus: Failed to load translations, using English fallback');
+    try {
+      const botStatusFileContent = fs.readFileSync('./translation/en/bot-status.json5', 'utf8');
+      return json5.parse(botStatusFileContent);
+    } catch (fallbackError) {
+      logger.error('BotStatus: Failed to load fallback translations', fallbackError);
+      // Return default values if even fallback fails
+      return {
+        botStatus: {
+          online: 'Playing with {playeronline}/{playermax} players',
+          offline: 'Server is offline'
+        }
+      };
+    }
+  }
+};
+
+export default async (client) => {
   // Destructure presence settings for easier usage
   const { presence } = config.bot;
   if (!presence.enabled) return;
+
+  // Load translations
+  const botStatusTranslation = loadBotStatusTranslations();
 
   /**
    * Helper function to log the bot's presence debug info.
@@ -23,35 +53,28 @@ export default (client) => {
    * @param {Function} colorFn - Chalk color function (e.g., chalk.green or chalk.red).
    */
   const logPresenceDebug = (presenceData, colorFn) => {
-    if (presenceData.activities.length > 0) {
-      presenceData.activities.forEach((activity) => {
-        const statusEmoji = statusEmojis[presenceData.status] || '';
-        // Use English format directly instead of translation
-        const statusText = `${statusEmoji} ${presenceData.status.toUpperCase()} ${ActivityType[activity.type]} ${activity.name}`;
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.yellow('DEBUG')} | Bot status updated to: ${colorFn(statusText)}`);
-      });
-    }
+    const statusText = presenceData.activities[0]?.name || 'No activity';
+    logger.debug(`BotStatus: Updated to "${statusText}"`);
   };
 
   /**
    * Function to update the bot's presence based on the server status.
    */
-  const botStatusUpdate = async () => {
+  const updateBotStatus = async () => {
+    logger.debug('BotStatus: Updating presence');
+
     try {
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.yellow('DEBUG')} | Updating bot status`);
-      
-      // 使用 serverDataManager 獲取伺服器數據
+      // Get server data
       const result = await serverDataManager.getServerData(config);
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Server data fetched, isOnline=${result?.isOnline}`);
+      logger.info(`BotStatus: Server data fetched, isOnline=${result?.isOnline}`);
       
-      // 如果無法獲取數據，設置離線狀態
       if (!result || !result.data) {
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Failed to get server data, setting offline status`);
+        logger.error('BotStatus: Failed to get server data, setting offline status');
         const presenceData = await client.user.setPresence({
           status: presence.status.offline,
           activities: [
             {
-              name: presence.text.offline,
+              name: botStatusTranslation.botStatus.offline,
               type: ActivityType[presence.activity],
             },
           ],
@@ -66,11 +89,11 @@ export default (client) => {
       let presenceData;
       if (isOnline) {
         // Replace placeholders in the online status text with real-time data
-        const statusText = presence.text.online
+        const statusText = botStatusTranslation.botStatus.online
           .replace(/{playeronline}/g, data.players.online)
           .replace(/{playermax}/g, data.players.max);
         
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Setting online status: ${statusText}`);
+        logger.info(`BotStatus: Setting online status "${statusText}"`);
 
         presenceData = await client.user.setPresence({
           status: presence.status.online,
@@ -84,12 +107,12 @@ export default (client) => {
         // Log debug info using green color for online status
         logPresenceDebug(presenceData, chalk.green);
       } else {
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Setting offline status: ${presence.text.offline}`);
+        logger.info(`BotStatus: Setting offline status "${botStatusTranslation.botStatus.offline}"`);
         presenceData = await client.user.setPresence({
           status: presence.status.offline,
           activities: [
             {
-              name: presence.text.offline,
+              name: botStatusTranslation.botStatus.offline,
               type: ActivityType[presence.activity],
             },
           ],
@@ -98,39 +121,34 @@ export default (client) => {
         logPresenceDebug(presenceData, chalk.red);
       }
     } catch (error) {
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Error updating bot status: ${error.message}`);
-      getError(error, 'botStatusUpdate');
+      logger.error(`BotStatus: Error updating presence`, error);
       // Set a default offline status in case of error
       try {
         await client.user.setPresence({
           status: presence.status.offline,
           activities: [
             {
-              name: presence.text.offline,
+              name: botStatusTranslation.botStatus.offline,
               type: ActivityType[presence.activity],
             },
           ],
         });
       } catch (presenceError) {
         // If even setting the presence fails, just log it and continue
-        console.error('Failed to set fallback presence:', presenceError);
+        logger.error('BotStatus: Failed to set fallback presence', presenceError);
       }
     }
   };
 
   // Initial status update
-  botStatusUpdate();
+  await updateBotStatus();
   
-  // 設置 serverDataManager 的緩存過期時間與更新間隔相同
+  // Set serverDataManager cache expiry time to match update interval
   const updateInterval = Math.max(60, parseInt(process.env.UPDATE_INTERVAL) || 60) * 1000;
-  serverDataManager.setCacheExpiry(updateInterval);
+  serverDataManager.setCacheExpiry(updateInterval * 1000 * 0.9);
   
-  // 設置定時更新
-  setInterval(botStatusUpdate, updateInterval);
+  // Set up periodic updates
+  setInterval(() => updateBotStatus(), updateInterval * 1000);
   
-  // 不再使用訂閱機制，避免重複更新
-  // serverDataManager.subscribe((data) => {
-  //   // 當數據更新時自動更新機器人狀態
-  //   botStatusUpdate();
-  // });
+  // No longer using subscription mechanism to avoid duplicate updates
 };

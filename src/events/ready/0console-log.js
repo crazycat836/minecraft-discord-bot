@@ -1,12 +1,13 @@
 import chalk from 'chalk';
 import config from '../../../config.js';
 import { consoleLogTranslation, getServerDataAndPlayerList } from '../../index.js';
+import logger from '../../utils/logger.js';
 
 export default async (client) => {
   // Log bot invite link if enabled in settings
   if (config.settings.logging.inviteLink) {
     const inviteLink = `https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot`;
-    console.log(
+    logger.info(
       consoleLogTranslation.inviteLink
         .replace(/\{botUserTag\}/gi, chalk.cyan(client.user.tag))
         .replace(/\{inviteLink\}/gi, chalk.cyan(inviteLink))
@@ -24,7 +25,7 @@ export default async (client) => {
   try {
     ({ data, isOnline } = await getServerDataAndPlayerList(true));
   } catch (error) {
-    console.error('Failed to fetch server data:', error);
+    logger.error('Failed to fetch server data', error);
     return;
   }
   
@@ -39,7 +40,7 @@ export default async (client) => {
     const serverInfoOnlineText = consoleLogTranslation.serverInfoStart.online.join('\n');
     // Cache MOTD lines for reuse
     const motdLines = data.motd.clean.split('\n');
-    console.log(
+    logger.info(
       serverInfoOnlineText
         .replace(/\{ip\}/gi, chalk.cyan.bold(formattedIp))
         .replace(/\{version\}/gi, chalk.cyan.bold(mcVersion))
@@ -52,7 +53,7 @@ export default async (client) => {
     // For offline status, use ipOffline to avoid naming conflict
     const ipOffline = mcType === 'bedrock' ? mcIp : ipJava;
     const serverInfoOfflineText = consoleLogTranslation.serverInfoStart.offline.join('\n');
-    console.log(
+    logger.info(
       serverInfoOfflineText
         .replace(/\{ip\}/gi, chalk.red.bold(ipOffline))
         .replace(/\{port\}/gi, chalk.red(mcPort))

@@ -1,6 +1,7 @@
 import config from '../../../config.js';
-import { cmdSlashTranslation, getError } from '../../index.js';
+import { cmdSlashTranslation } from '../../index.js';
 import { ipEmbed, siteEmbed, playerList, versionEmbed, statusEmbed, motdEmbed, helpEmbed } from '../../embeds.js';
+import logger from '../../utils/logger.js';
 
 const { commands, mcserver } = config;
 
@@ -82,7 +83,7 @@ export default async (message, client) => {
       return message.channel.send({ embeds: [await statusEmbed()] });
     } catch (error) {
       message.channel.send(cmdSlashTranslation.status.errorReply);
-      getError(error, 'statusPrefix');
+      logger.error('Command: Error in status prefix command', error);
     }
   }
 };

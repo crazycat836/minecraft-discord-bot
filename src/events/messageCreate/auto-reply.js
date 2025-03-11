@@ -2,7 +2,8 @@ import config from '../../../config.js';
 import fs from 'fs';
 import json5 from 'json5';
 
-import { getServerDataAndPlayerList, getError } from '../../index.js';
+import { getServerDataAndPlayerList } from '../../index.js';
+import logger from '../../utils/logger.js';
 
 const { autoReply, mcserver, commands, settings } = config;
 
@@ -63,6 +64,6 @@ export default async (msg) => {
     }
   } catch (error) {
     // Log error with identifier 'autoReply'
-    getError(error, 'autoReply');
+    logger.error('AutoReply: Error processing message', error);
   }
 };

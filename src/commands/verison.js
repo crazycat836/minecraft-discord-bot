@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from 'discord.js';
 import config from '../../config.js';
 import { versionEmbed } from '../embeds.js';
 import { cmdSlashTranslation } from '../index.js';
+import logger from '../utils/logger.js';
 
 const { commands } = config;
 
@@ -16,7 +17,7 @@ export default {
     try {
       await interaction.reply({ embeds: [versionEmbed] });
     } catch (error) {
-      console.error('Error executing version command:', error);
+      logger.error('Error executing version command', error);
     }
   },
 

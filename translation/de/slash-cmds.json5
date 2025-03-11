@@ -1,9 +1,7 @@
-// GitHub: https://github.com/NooberPro/minecraft-discord-bot
-// Crowdin: https://crowdin.com/project/minecraft-discord-bot
-// Übersetzung ins Deutsche (de) durch KI
+// German Translation (de)
 
 {
-  // Übersetzung für die Schrägstrichbefehle ("slash commands").
+  // Übersetzung für Slash-Befehle.
 
   // Das Name-Feld ist der Befehlsname. Sie können den Befehlsnamen umbenennen, aber ER DARF NICHT ÜBERSETZT WERDEN.
   // Das Beschreibungsfeld enthält die Beschreibung des Befehls.

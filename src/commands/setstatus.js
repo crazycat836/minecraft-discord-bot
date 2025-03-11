@@ -1,11 +1,12 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import chalk from 'chalk';
 import fs from 'fs/promises';
-import { statusMessageEdit, consoleLogTranslation, cmdSlashTranslation, getError } from '../index.js';
+import { statusMessageEdit, consoleLogTranslation, cmdSlashTranslation } from '../index.js';
 import config from '../../config.js';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import isIP from 'validator/lib/isIP.js';
+import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -61,14 +62,21 @@ if (autoChangeStatus.adminOnly) {
 }
 
 async function run({ interaction, client }) {
-  // Defer the reply to allow for command processing time
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   try {
     // Check if autoChangeStatus feature is enabled
     if (!autoChangeStatus.enabled) {
       await interaction.editReply({
         content: cmdSlashTranslation.setstatus.enableFeature,
         flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    // Check if the user has admin permissions or if adminOnly is disabled
+    if (autoChangeStatus.adminOnly && !interaction.member.permissions.has('ADMINISTRATOR')) {
+      await interaction.reply({
+        content: cmdSlashTranslation.setstatus.adminOnly,
+        ephemeral: true,
       });
       return;
     }
@@ -146,7 +154,7 @@ async function run({ interaction, client }) {
     });
 
     // Log a success message to the console
-    console.log(
+    logger.info(
       consoleLogTranslation.debug.autoChangeStatus.successLog.replace(
         /\{channelName\}/gi,
         chalk.cyan(`#${msg.channel.name}`)
@@ -161,7 +169,7 @@ async function run({ interaction, client }) {
     // If the error is due to an invalid IP format, stop further processing
     if (error.message.startsWith('Invalid IP')) return;
     // Log the error details for debugging purposes
-    getError(error, 'setStatus');
+    logger.error('Error in setStatus command', error);
   }
 }
 

@@ -1,8 +1,9 @@
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, codeBlock } from 'discord.js';
 import config from '../config.js';
-import { embedTranslation, getServerDataAndPlayerList, getError } from './index.js';
+import { embedTranslation, getServerDataAndPlayerList } from './index.js';
 import process from 'node:process';
 import os from 'os';
+import logger from './utils/logger.js';
 
 const { mcserver, commands, settings } = config;
 
@@ -53,22 +54,26 @@ const ipEmbed = new EmbedBuilder()
 
 // Offline embed for status commands
 const offlineStatus = () => {
-  const replacements = {
-    ip,
-    version: mcserver.version,
-    site: mcserver.site,
-  };
-  const embed = new EmbedBuilder()
-    .setColor(settings.embedsColors.offline)
-    .setTitle(replacePlaceholders(embedTranslation.offlineEmbed.title, replacements))
-    .setThumbnail(mcserver.icon)
-    .setAuthor({ name: mcserver.name })
-    .setTimestamp()
-    .setFooter({ text: embedTranslation.offlineEmbed.footer });
-  if (embedTranslation.offlineEmbed.description) {
-    embed.setDescription(replacePlaceholders(embedTranslation.offlineEmbed.description, replacements));
+  try {
+    const description = embedTranslation.offlineEmbed.description
+      .replace(/\{ip\}/gi, ip)
+      .replace(/\{port\}/gi, port);
+
+    return new EmbedBuilder()
+      .setColor(settings.embedsColors.offline)
+      .setThumbnail(mcserver.icon)
+      .setAuthor({ name: mcserver.name })
+      .setTitle(embedTranslation.offlineEmbed.title)
+      .setDescription(description)
+      .setTimestamp()
+      .setFooter({ text: embedTranslation.offlineEmbed.footer });
+  } catch (error) {
+    logger.error('Error creating offline status embed', error);
+    return new EmbedBuilder()
+      .setColor(settings.embedsColors.offline)
+      .setTitle('Server Offline')
+      .setDescription('Error creating embed');
   }
-  return embed;
 };
 
 // MOTD embed for motd commands
@@ -105,7 +110,8 @@ const playerList = async () => {
         .setFooter({ text: embedTranslation.offlineEmbed.footer });
     }
   } catch (error) {
-    getError(error, 'playerEmbed');
+    logger.error('Error creating players embed', error);
+    return offlineStatus();
   }
 };
 
@@ -148,7 +154,8 @@ const OnlineEmbed = async (data, playerlist) => {
       .setTimestamp()
       .setFooter({ text: embedTranslation.onlineEmbed.footer });
   } catch (error) {
-    getError(error, 'statusEmbed');
+    logger.error('Error creating online embed', error);
+    return offlineStatus();
   }
 };
 

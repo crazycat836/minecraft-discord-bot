@@ -1,13 +1,14 @@
 import { statusBedrock, statusJava } from 'node-mcstatus';
 import chalk from 'chalk';
+import logger from '../utils/logger.js';
 
 /**
- * ServerDataManager - 集中管理 Minecraft 伺服器狀態數據
- * 實現請求合併、數據緩存和訂閱機制
+ * ServerDataManager - Centralized management of Minecraft server status data
+ * Implements request merging, data caching, and subscription mechanism
  */
 class ServerDataManager {
   constructor() {
-    // 緩存的數據
+    // Cached data
     this.cache = {
       data: null,
       isOnline: false,
@@ -15,33 +16,33 @@ class ServerDataManager {
       lastUpdated: 0
     };
     
-    // 當前正在進行的請求
+    // Current ongoing request
     this.pendingRequest = null;
     
-    // 緩存過期時間（毫秒）
-    this.cacheExpiry = 30000; // 30 秒
+    // Cache expiration time (milliseconds)
+    this.cacheExpiry = 30000; // 30 seconds
     
-    // 重試設置
+    // Retry settings
     this.maxRetries = 3;
-    this.baseDelay = 1000; // 1 秒
+    this.baseDelay = 1000; // 1 second
     
-    // 訂閱者列表
+    // Subscribers list
     this.subscribers = [];
     
-    // 請求計數器（用於調試）
+    // Request counter for debugging
     this.requestCount = 0;
   }
   
   /**
-   * 獲取伺服器數據，如果緩存有效則使用緩存
-   * @param {Object} config - 配置對象
-   * @param {boolean} forceRefresh - 是否強制刷新緩存
-   * @returns {Promise<Object>} - 伺服器數據
+   * Get server data, use cache if valid
+   * @param {Object} config - Configuration object
+   * @param {boolean} forceRefresh - Whether to force refresh the cache
+   * @returns {Promise<Object>} - Server data
    */
   async getServerData(config, forceRefresh = false) {
     const now = Date.now();
     
-    // 如果緩存有效且不強制刷新，直接返回緩存
+    // If cache is valid and no force refresh, return cache directly
     if (!forceRefresh && this.cache.data && (now - this.cache.lastUpdated) < this.cacheExpiry) {
       return {
         data: this.cache.data,
@@ -50,50 +51,51 @@ class ServerDataManager {
       };
     }
     
-    // 如果已經有一個請求在進行中，等待該請求完成
+    // If there's already a request in progress, wait for it to complete
     if (this.pendingRequest) {
       return this.pendingRequest;
     }
     
-    // 創建新的請求
+    // Create new request
     this.pendingRequest = this._fetchServerData(config);
     
     try {
       const result = await this.pendingRequest;
       return result;
     } finally {
-      // 請求完成後清除 pendingRequest
+      // Clear pendingRequest after request completes
       this.pendingRequest = null;
     }
   }
   
   /**
-   * 實際獲取伺服器數據的方法（帶重試邏輯）
-   * @private
-   * @param {Object} config - 配置對象
-   * @returns {Promise<Object>} - 伺服器數據
+   * Fetch server data from the Minecraft server
+   * @param {Object} config - Configuration object
+   * @returns {Promise<Object>} Server data and online status
    */
   async _fetchServerData(config) {
+    this.requestCount++;
+    
+    // Log the request
+    logger.info(`Fetching server data (request #${this.requestCount}) for ${config.mcserver.ip}:${config.mcserver.port}`);
+    
     let retries = 0;
     
     while (retries <= this.maxRetries) {
       try {
-        this.requestCount++;
-        console.log(`${this._getDateNow()} | ${chalk.blue('INFO')} | Fetching server data (request #${this.requestCount}) for ${config.mcserver.ip}:${config.mcserver.port}`);
+        // Determine which API to use based on server type
+        const statusFunction = config.mcserver.type === 'bedrock' ? statusBedrock : statusJava;
         
-        const data = config.mcserver.type === 'java'
-          ? await statusJava(config.mcserver.ip, config.mcserver.port)
-          : await statusBedrock(config.mcserver.ip, config.mcserver.port);
+        // Call the appropriate status function
+        const data = await statusFunction(config.mcserver.ip, config.mcserver.port);
         
-        // 檢查 config.autoChangeStatus 是否存在
-        const isOnlineCheck = config.autoChangeStatus && config.autoChangeStatus.isOnlineCheck;
-        const isOnline = isOnlineCheck 
-          ? data.online && data.players.max > 0 
-          : data.online;
+        // If we get here, the request was successful
+        const isOnline = true;
         
-        console.log(`${this._getDateNow()} | ${chalk.green('SUCCESS')} | Server ${config.mcserver.ip}:${config.mcserver.port} is ${isOnline ? 'online' : 'offline'}`);
+        // Log success
+        logger.info(`Server ${config.mcserver.ip}:${config.mcserver.port} is ${isOnline ? 'online' : 'offline'}`);
         
-        // 更新緩存
+        // Update cache
         this.cache = {
           data,
           isOnline,
@@ -101,7 +103,7 @@ class ServerDataManager {
           lastUpdated: Date.now()
         };
         
-        // 通知訂閱者
+        // Notify subscribers
         this._notifySubscribers();
         
         return {
@@ -110,65 +112,89 @@ class ServerDataManager {
           playerList: this.cache.playerList
         };
       } catch (error) {
-        // 如果是 "Too Many Requests" 錯誤且還有重試次數，則等待後重試
-        if (error.message === 'Too Many Requests' && retries < this.maxRetries) {
+        // Check if this is a rate limit error
+        if (error.message && error.message.includes('rate')) {
           retries++;
-          const delay = this.baseDelay * Math.pow(2, retries);
-          console.log(`${this._getDateNow()} | ${chalk.yellow('WARN')} | Rate limited, retrying in ${delay}ms (attempt ${retries}/${this.maxRetries})`);
+          
+          // Exponential backoff
+          const delay = this.baseDelay * Math.pow(2, retries - 1);
+          
+          // Log rate limit
+          logger.warn(`Rate limited, retrying in ${delay}ms (attempt ${retries}/${this.maxRetries})`);
+          
+          // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
-          // 其他錯誤或重試次數用完，則拋出錯誤
-          console.log(`${this._getDateNow()} | ${chalk.red('ERROR')} | Failed to fetch server data for ${config.mcserver.ip}:${config.mcserver.port}: ${error.message}`);
-          throw error;
+          // Log other errors
+          logger.error(`Failed to fetch server data for ${config.mcserver.ip}:${config.mcserver.port}: ${error.message}`);
+          
+          // For non-rate limit errors, return offline status immediately
+          this.cache = {
+            data: null,
+            isOnline: false,
+            playerList: { online: 0, max: 0, list: [] },
+            lastUpdated: Date.now()
+          };
+          
+          // Notify subscribers
+          this._notifySubscribers();
+          
+          return { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
         }
       }
     }
     
-    // 如果所有重試都失敗，返回離線狀態
-    console.log(`${this._getDateNow()} | ${chalk.red('ERROR')} | All retries failed for ${config.mcserver.ip}:${config.mcserver.port}, returning offline status`);
-    return {
-      data: { online: false, players: { online: 0, max: 0, list: [] } },
+    // If we've exhausted all retries
+    logger.error(`All retries failed for ${config.mcserver.ip}:${config.mcserver.port}, returning offline status`);
+    
+    this.cache = {
+      data: null,
       isOnline: false,
-      playerList: { online: 0, max: 0, list: [] }
+      playerList: { online: 0, max: 0, list: [] },
+      lastUpdated: Date.now()
     };
+    
+    // Notify subscribers
+    this._notifySubscribers();
+    
+    return { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
   }
   
   /**
-   * 訂閱數據更新
-   * @param {Function} callback - 當數據更新時調用的回調函數
-   * @returns {Function} - 取消訂閱的函數
+   * Subscribe to data updates
+   * @param {Function} callback - Callback function to call when data is updated
+   * @returns {Function} - Function to unsubscribe
    */
   subscribe(callback) {
     this.subscribers.push(callback);
     
-    // 返回取消訂閱的函數
+    // Return function to unsubscribe
     return () => {
       this.subscribers = this.subscribers.filter(sub => sub !== callback);
     };
   }
   
   /**
-   * 通知所有訂閱者數據已更新
-   * @private
+   * Notify all subscribers of data changes
    */
   _notifySubscribers() {
-    for (const subscriber of this.subscribers) {
-      try {
-        subscriber({
-          data: this.cache.data,
-          isOnline: this.cache.isOnline,
-          playerList: this.cache.playerList
-        });
-      } catch (error) {
-        console.error('Error in subscriber callback:', error);
-      }
+    if (this.subscribers.length > 0) {
+      const { data, isOnline, playerList } = this.cache;
+      
+      this.subscribers.forEach(callback => {
+        try {
+          callback({ data, isOnline, playerList });
+        } catch (error) {
+          logger.error('Error in subscriber callback:', error);
+        }
+      });
     }
   }
   
   /**
-   * 獲取當前日期時間字符串
+   * Get current date time string
    * @private
-   * @returns {string} - 格式化的日期時間字符串
+   * @returns {string} - Formatted date time string
    */
   _getDateNow() {
     const date = new Date();
@@ -185,15 +211,15 @@ class ServerDataManager {
   }
   
   /**
-   * 設置緩存過期時間
-   * @param {number} milliseconds - 緩存過期時間（毫秒）
+   * Set cache expiration time
+   * @param {number} milliseconds - Cache expiration time (milliseconds)
    */
   setCacheExpiry(milliseconds) {
     this.cacheExpiry = milliseconds;
   }
   
   /**
-   * 手動清除緩存
+   * Manually clear cache
    */
   clearCache() {
     this.cache = {
@@ -205,7 +231,7 @@ class ServerDataManager {
   }
 }
 
-// 創建單例實例
+// Create singleton instance
 const serverDataManager = new ServerDataManager();
 
 export default serverDataManager; 

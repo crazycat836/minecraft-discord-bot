@@ -1,9 +1,7 @@
-// GitHub: https://github.com/NooberPro/minecraft-discord-bot
-// Crowdin: https://crowdin.com/project/minecraft-discord-bot
-// Український переклад (ua) від Zahar1loshara
+// Ukrainian Translation (uk)
 
 {
-  // Переклад для функції автовідповіді.
+  // Переклад для функції автоматичної відповіді.
   version: {
     // Використовуйте {version} для отримання версію з конфігу.
     replyText: 'Версія серверу: **`{version}`**.',

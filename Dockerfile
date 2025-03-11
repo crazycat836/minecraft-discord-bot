@@ -52,21 +52,18 @@ ENV MC_SERVER_IP="" \
 # Language Settings
 ENV LANGUAGE_MAIN="zh-TW"
 
-# Feature Toggles
-ENV DEBUG_MODE="false" \
-    ERROR_LOGGING_ENABLED="true" \
-    SERVER_INFO_LOGGING_ENABLED="true" \
-    AUTO_CHANGE_STATUS_ENABLED="true" \
-    UPDATE_INTERVAL="60" \
-    ADMIN_ONLY="false" \
-    PLAYER_AVATAR_EMOJI="true"
-
-# Player Count Feature
-ENV PLAYER_COUNT_ENABLED="true" \
-    PLAYER_COUNT_UPDATE_INTERVAL="60"
-
 # Node Environment
 ENV NODE_ENV="production"
+
+# Feature Toggles
+ENV AUTO_CHANGE_STATUS_ENABLED="true" \
+    UPDATE_INTERVAL="60" \
+    ADMIN_ONLY="false" \
+    PLAYER_AVATAR_EMOJI="true" \
+    IS_ONLINE_CHECK="true" \
+    INVITE_LINK_ENABLED="true" \
+    PLAYER_COUNT_ENABLED="true" \
+    PLAYER_COUNT_UPDATE_INTERVAL="60"
 
 # Use tini as entrypoint
 ENTRYPOINT ["/sbin/tini", "--"]

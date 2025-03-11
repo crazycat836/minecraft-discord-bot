@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  minecraft-discord-bot:
+    image: crazycat836/minecraftrobot:latest
+    container_name: minecraft-discord-bot
+    restart: unless-stopped
+    environment:
+      # Environment Settings - Controls Logging Level
+      # Options: development (TRACE), test (DEBUG), production (INFO), docker (INFO)
+      - NODE_ENV=production
+      
+      # Required Settings - Discord Configuration
+      - DISCORD_BOT_TOKEN=your_discord_bot_token_here
+      - DISCORD_GUILD_ID=your_discord_guild_id_here
+      - STATS_CHANNEL_ID=your_stats_channel_id_here
+      
+      # Required Settings - Minecraft Server Configuration
+      - MC_SERVER_NAME=your_minecraft_server_name_here
+      - MC_SERVER_VERSION=your_minecraft_server_version_here
+      - MC_SERVER_IP=your_minecraft_server_ip_here
+      - MC_SERVER_PORT=25565
+      - MC_SERVER_TYPE=java
+      
+      # Optional Settings - Server Information
+      - MC_SERVER_ICON=https://example.com/your-server-icon.png
+      - MC_SERVER_SITE=https://example.com/your-server-site
+      
+      # Optional Settings - Language Configuration
+      # Supported language codes: en, es, de, fr, pt, ru, uk, zh-TW
+      # Please set according to your preference
+      # Bot status text and player count channel text are automatically determined
+      # based on the selected language and cannot be directly customized
+      - LANGUAGE_MAIN=  # Please set your desired language, e.g.: en, zh-TW
+      - LANGUAGE_EMBEDS=     # Leave empty to use LANGUAGE_MAIN
+      - LANGUAGE_AUTO_REPLY= # Leave empty to use LANGUAGE_MAIN
+      - LANGUAGE_CONSOLE_LOG= # Leave empty to use LANGUAGE_MAIN
+      - LANGUAGE_SLASH_CMDS= # Leave empty to use LANGUAGE_MAIN
+      
+      # Optional Settings - Status Update Configuration
+      # Note: In development/test environments, UPDATE_INTERVAL will be automatically set to 30 seconds
+      # In production, it must be at least 60 seconds
+      - AUTO_CHANGE_STATUS_ENABLED=true
+      - UPDATE_INTERVAL=60
+      - ADMIN_ONLY=true
+      - PLAYER_AVATAR_EMOJI=true
+      - IS_ONLINE_CHECK=true
+      
+      # Optional Settings - Player Count Channel Configuration
+      # Note: In development/test environments, PLAYER_COUNT_UPDATE_INTERVAL will be automatically set to 30 seconds
+      # In production, it must be at least 60 seconds
+      - PLAYER_COUNT_ENABLED=true
+      - PLAYER_COUNT_UPDATE_INTERVAL=60
+      
+      # Other Settings
+      - INVITE_LINK_ENABLED=true
+      - TIMEZONE=UTC
+    
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s 

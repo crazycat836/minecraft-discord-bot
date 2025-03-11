@@ -39,7 +39,14 @@
 
 ## 安裝
 
+安裝和運行機器人有兩種主要方式：
+
+1. **使用 Docker** (推薦用於生產環境)
+2. **手動安裝** (推薦用於開發環境)
+
 ### 使用 Docker 快速啟動
+
+最簡單的開始方式是使用單一 Docker 命令：
 
 ```bash
 docker run -d \
@@ -49,7 +56,149 @@ docker run -d \
   -e MC_SERVER_NAME=your_server_name \
   -e MC_SERVER_VERSION=your_server_version \
   -e MC_SERVER_IP=your_server_ip \
+  -e LANGUAGE_MAIN=zh-TW \
   crazycat836/minecraft-discord-bot
+```
+
+### 使用 Docker Compose 部署
+
+對於更穩健的設置，我們推薦使用 Docker Compose：
+
+1. **下載 Docker Compose 配置文件**
+
+```bash
+wget https://raw.githubusercontent.com/crazycat836/minecraft-discord-bot/main/docker-compose.example.yml -O docker-compose.yml
+```
+
+2. **編輯配置文件**
+
+```bash
+nano docker-compose.yml
+```
+
+將佔位符替換為您的實際值：
+- `your_discord_bot_token_here`：您的 Discord 機器人令牌
+- `your_discord_guild_id_here`：您的 Discord 伺服器 ID
+- `your_stats_channel_id_here`：您想要顯示統計資料的頻道 ID
+- `your_minecraft_server_name_here`：您的 Minecraft 伺服器名稱
+- `your_minecraft_server_version_here`：您的 Minecraft 伺服器版本
+- `your_minecraft_server_ip_here`：您的 Minecraft 伺服器 IP
+
+3. **啟動容器**
+
+```bash
+docker-compose up -d
+```
+
+4. **檢查容器狀態和日誌**
+
+```bash
+docker-compose ps
+docker-compose logs -f
+```
+
+### Docker 環境變數設置方式
+
+使用 Docker 時，有幾種設置環境變數的方法：
+
+1. **使用命令行參數：**
+   ```bash
+   docker run -d \
+     -e DISCORD_BOT_TOKEN=your_token \
+     -e DISCORD_GUILD_ID=your_guild_id \
+     -e MC_SERVER_NAME="Your Server Name" \
+     -e MC_SERVER_VERSION=1.20.4 \
+     -e MC_SERVER_IP=mc.example.com \
+     -e LANGUAGE_MAIN=zh-TW \
+     crazycat836/minecraft-discord-bot
+   ```
+
+2. **使用 .env 文件與 docker-compose：**
+   在與 `docker-compose.yml` 相同目錄下創建 `.env` 文件：
+   ```env
+   DISCORD_BOT_TOKEN=your_token
+   DISCORD_GUILD_ID=your_guild_id
+   STATS_CHANNEL_ID=your_channel_id
+   MC_SERVER_NAME=Your Server Name
+   MC_SERVER_VERSION=1.20.4
+   MC_SERVER_IP=mc.example.com
+   LANGUAGE_MAIN=zh-TW
+   ```
+   
+   然後在 `docker-compose.yml` 中：
+   ```yaml
+   version: '3.8'
+   services:
+     minecraft-discord-bot:
+       image: crazycat836/minecraft-discord-bot
+       environment:
+         - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+         - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+         - STATS_CHANNEL_ID=${STATS_CHANNEL_ID}
+         - MC_SERVER_NAME=${MC_SERVER_NAME}
+         - MC_SERVER_VERSION=${MC_SERVER_VERSION}
+         - MC_SERVER_IP=${MC_SERVER_IP}
+         - LANGUAGE_MAIN=${LANGUAGE_MAIN}
+   ```
+   
+   運行：`docker-compose up -d`
+
+3. **使用 Docker 環境文件：**
+   ```bash
+   docker run --env-file .env -d crazycat836/minecraft-discord-bot
+   ```
+
+有關可用環境變數的完整列表，請參閱存儲庫中的 `.env.example` 文件。
+
+### 環境變數特殊說明
+
+#### NODE_ENV 環境變數
+`NODE_ENV` 環境變數控制機器人的日誌級別和某些行為：
+- `development`：最詳細的日誌級別 (TRACE)，適合開發使用
+- `test`：詳細的日誌級別 (DEBUG)，適合測試使用
+- `production`：標準日誌級別 (INFO)，建議在生產環境使用
+- `docker`：標準日誌級別 (INFO)，適合 Docker 環境
+
+#### 更新間隔行為
+在開發和測試環境中 (`NODE_ENV` 設為 `development` 或 `test`)，系統會自動將以下更新間隔設為 30 秒，以加快開發和測試流程：
+- `UPDATE_INTERVAL`：狀態更新間隔
+- `PLAYER_COUNT_UPDATE_INTERVAL`：玩家數量頻道更新間隔
+
+在生產環境中，這些值必須至少為 60 秒，以避免 Discord API 限制。
+
+### Docker 故障排除
+
+#### 容器無法啟動
+
+檢查日誌中的錯誤訊息：
+
+```bash
+docker-compose logs
+```
+
+#### Discord 機器人無法連接
+
+確保您的 `DISCORD_BOT_TOKEN` 正確，且機器人已被邀請到您的伺服器。
+
+#### 無法獲取 Minecraft 伺服器狀態
+
+確保您的 `MC_SERVER_IP` 和 `MC_SERVER_PORT` 設置正確，且容器所在網絡可以訪問伺服器。
+
+#### 更新機器人
+
+要更新到最新版本，運行：
+
+```bash
+docker-compose pull
+docker-compose up -d
+```
+
+#### 備份數據
+
+容器將數據存儲在 `./data` 目錄中。要備份數據，只需複製此目錄：
+
+```bash
+cp -r ./data /path/to/backup
 ```
 
 ### 手動安裝
@@ -64,7 +213,7 @@ docker run -d \
    - 在終端機中執行 `npm install`
 
 3. **配置機器人：**
-   - 複製 `.env.example` 到 `.env`
+   - 複製 `.env.example` 到 `.env` (或執行 `npm run setup`)
    - 編輯 `.env` 文件，填入您的設定：
      ```env
      # 必要設定
@@ -72,17 +221,18 @@ docker run -d \
      DISCORD_GUILD_ID=       # 您的 Discord 伺服器 ID
      MC_SERVER_NAME=         # 您的 Minecraft 伺服器名稱
      MC_SERVER_VERSION=      # 您的 Minecraft 伺服器版本
-     MC_SERVER_IP=          # 您的 Minecraft 伺服器 IP
-
+     MC_SERVER_IP=           # 您的 Minecraft 伺服器 IP
+     
      # 選擇性設定
-     MC_SERVER_PORT=25565   # 預設：25565
-     MC_SERVER_TYPE=java    # 選項：'java' 或 'bedrock'
+     MC_SERVER_PORT=25565    # 預設：25565
+     MC_SERVER_TYPE=java     # 選項：'java' 或 'bedrock'
+     STATS_CHANNEL_ID=       # 玩家數量統計的頻道 ID
+     LANGUAGE_MAIN=zh-TW     # 主要語言 (en, es, de, fr, pt, ru, uk, zh-TW)
      ```
 
 4. **自訂機器人設定（選擇性）：**
    - 開啟 `config.js`
    - 自訂機器人功能：
-     - 語言偏好
      - 自動狀態更新
      - 指令前綴
      - 自動回覆觸發
@@ -90,10 +240,40 @@ docker run -d \
 
 5. **啟動機器人：**
    ```bash
-   npm start
+   npm start  # 以生產模式啟動機器人
    # 或
-   node .
+   npm run dev  # 以開發模式啟動機器人（自動重新載入）
    ```
+
+## 多語言支援
+
+本機器人支援以下語言：
+- 英文 (en)
+- 西班牙文 (es)
+- 德文 (de)
+- 法文 (fr)
+- 葡萄牙文 (pt)
+- 俄文 (ru)
+- 烏克蘭文 (uk)
+- 繁體中文 (zh-TW)
+
+您必須設置 `LANGUAGE_MAIN` 環境變數來指定主要語言。機器人將自動使用相應的翻譯用於所有功能，包括：
+
+- 機器人狀態訊息
+- 玩家數量頻道名稱
+- 指令回應
+- 控制台日誌
+- 自動回覆
+
+如果您希望不同功能使用不同語言，可以設置以下環境變數：
+- `LANGUAGE_EMBEDS` - 嵌入訊息的語言
+- `LANGUAGE_AUTO_REPLY` - 自動回覆的語言
+- `LANGUAGE_CONSOLE_LOG` - 控制台日誌的語言
+- `LANGUAGE_SLASH_CMDS` - 斜線指令的語言
+
+如果這些變數留空，將使用 `LANGUAGE_MAIN` 的值。
+
+> **注意**：機器人狀態文字和玩家數量頻道文字會根據所選語言自動決定，無法直接自訂。
 
 ## 開發
 
@@ -109,14 +289,18 @@ cd minecraft-discord-bot
 # 安裝依賴
 npm install
 
+# 建立 .env 檔案
+npm run setup
+
 # 啟動開發伺服器
 npm run dev
 ```
 
 ### 可用的腳本
 
-- `npm start` - 啟動機器人
+- `npm start` - 以生產模式啟動機器人
 - `npm run dev` - 以開發模式啟動機器人（自動重新載入）
+- `npm run setup` - 從範例模板建立 .env 檔案
 - `npm run docker:build` - 建構您平台的 Docker 映像檔
 - `npm run docker:build:amd64` - 建構 AMD64 平台的 Docker 映像檔
 - `npm run docker:build:multi` - 建構多平台的 Docker 映像檔（AMD64、ARM64）

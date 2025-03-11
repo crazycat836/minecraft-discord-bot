@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from 'discord.js';
 import config from '../../config.js';
 import { siteEmbed } from '../embeds.js';
 import { cmdSlashTranslation } from '../index.js';
+import logger from '../utils/logger.js';
 
 const { commands, mcserver } = config;
 
@@ -15,7 +16,7 @@ export default {
       // Reply with the site embed
       await interaction.reply({ embeds: [siteEmbed] });
     } catch (error) {
-      console.error('Error executing site command:', error);
+      logger.error('Error executing site command', error);
     }
   },
 

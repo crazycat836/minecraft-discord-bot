@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js';
 import config from '../../config.js';
-import { cmdSlashTranslation, getError } from '../index.js';
-import { playerList } from '../embeds.js';
+import { cmdSlashTranslation } from '../index.js';
+import logger from '../utils/logger.js';
 
 const { commands } = config;
 
@@ -14,23 +14,33 @@ export default {
   // Run function executed when the command is invoked
   run: async ({ interaction }) => {
     try {
-      // Defer the reply to allow time for processing
+      // Defer the reply to give us time to process
       await interaction.deferReply();
-
-      // Fetch the embed that displays the player list
-      const embed = await playerList();
-
-      // Edit the deferred reply with the retrieved embed
-      await interaction.editReply({ content: '', embeds: [embed] });
+      
+      // Import the necessary functions
+      const { getServerDataAndPlayerList } = await import('../index.js');
+      
+      // Get server data and player list
+      const result = await getServerDataAndPlayerList();
+      
+      // Create the embed based on the result
+      const { playersEmbed } = await import('../embeds.js');
+      const embed = playersEmbed(result);
+      
+      // Edit the deferred reply with the embed
+      await interaction.editReply({ embeds: [embed] });
     } catch (error) {
-      // If an error occurs, inform the user via followUp and log the error
-      await interaction.followUp({ content: cmdSlashTranslation.players.errorReply });
-      getError(error, 'playerCmd');
+      logger.error('Error in players command', error);
+      
+      // Reply with an error message
+      await interaction.editReply({
+        content: cmdSlashTranslation.players.errorReply,
+      });
     }
   },
 
   options: {
-    // Remove the command from Discord if either players command or slash commands are disabled
+    // If the players command or slashCommands is not enabled, remove the command from Discord
     deleted: !commands.players.enabled || !commands.slashCommands,
   },
 };

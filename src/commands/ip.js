@@ -1,7 +1,8 @@
 import { SlashCommandBuilder } from 'discord.js';
 import config from '../../config.js';
-import { cmdSlashTranslation } from '../index.js';
 import { ipEmbed } from '../embeds.js';
+import { cmdSlashTranslation } from '../index.js';
+import logger from '../utils/logger.js';
 
 // Destructure commands from config
 const { commands } = config;
@@ -16,12 +17,12 @@ export default {
       // Reply with the IP embed
       await interaction.reply({ embeds: [ipEmbed] });
     } catch (error) {
-      console.error('Error executing ip command:', error);
+      logger.error('Error executing ip command', error);
     }
   },
 
   options: {
-    // If the ip command or slashCommands are not enabled, the command will be removed from Discord
+    // If the ip command or slashCommands is not enabled, remove the command from Discord
     deleted: !commands.ip.enabled || !commands.slashCommands,
   },
 };

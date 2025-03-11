@@ -1,199 +1,179 @@
 import chalk from 'chalk';
 import config from '../../../config.js';
-import { getDebug, getError, consoleLogTranslation } from '../../index.js';
+import { consoleLogTranslation } from '../../index.js';
 import serverDataManager from '../../services/serverDataManager.js';
 import { promises as fsPromises } from 'fs';
+import fs from 'fs';
+import json5 from 'json5';
 import path from 'path';
 import { ChannelType } from 'discord.js';
+import logger from '../../utils/logger.js';
 
 // Construct the absolute path for the data.json file
 const dataPath = path.join(process.cwd(), 'src', 'data.json');
 
+// Load player count translations
+const loadPlayerCountTranslations = () => {
+  try {
+    const languageMain = config.settings.language.main || 'en';
+    const playerCountFileContent = fs.readFileSync(`./translation/${languageMain}/bot-status.json5`, 'utf8');
+    return json5.parse(playerCountFileContent);
+  } catch (error) {
+    logger.error('Failed to load player count translations, using English as fallback');
+    try {
+      const playerCountFileContent = fs.readFileSync('./translation/en/bot-status.json5', 'utf8');
+      return json5.parse(playerCountFileContent);
+    } catch (fallbackError) {
+      logger.error('Failed to load fallback translations', fallbackError);
+      // Return default values if even fallback fails
+      return {
+        playerCount: {
+          online: '🟢 {playeronline}/{playermax} active players',
+          offline: '⚫ Server offline'
+        }
+      };
+    }
+  }
+};
+
+// Load translations
+const playerCountTranslation = loadPlayerCountTranslations();
+
 export default async (client) => {
-  /**
-   * Updates the player count channel name based on server status
-   * @param {string} channelId - The ID of the channel to update
-   */
+  // Function to update player count channel
   async function playerCountUpdate(channelId) {
     try {
       if (!channelId) {
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Channel ID is undefined`);
+        logger.error('PlayerCount: Channel ID is undefined');
         return;
       }
 
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.yellow('DEBUG')} | Updating player count channel ${channelId}`);
+      logger.debug(`PlayerCount: Updating channel ${channelId}`);
       
-      try {
-        const channel = await client.channels.fetch(channelId);
-        if (!channel) {
-          console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Channel ${channelId} not found`);
-          return;
-        }
-
-        // 使用 serverDataManager 獲取伺服器數據
-        const result = await serverDataManager.getServerData(config);
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Server data fetched, isOnline=${result?.isOnline}`);
-        
-        let statusName;
-        if (result && result.isOnline) {
-          statusName = config.playerCountCH.onlineText
-            .replace(/{playeronline}/g, result.data.players.online)
-            .replace(/{playermax}/g, result.data.players.max);
-        } else {
-          statusName = config.playerCountCH.offlineText;
-        }
-
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | New channel name: ${statusName}`);
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Current channel name: ${channel.name}`);
-        
-        if (channel.name !== statusName) {
-          console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Updating channel name to: ${statusName}`);
-          try {
-            await channel.edit({ name: statusName });
-            console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.green('SUCCESS')} | Channel name updated to: ${statusName}`);
-            console.log(
-              consoleLogTranslation.debug.playerCountChUpdate.replace(
-                /\{updatedName\}/gi,
-                chalk.cyan(statusName)
-              )
-            );
-          } catch (editError) {
-            console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Error updating channel name: ${editError.message}`);
-            throw editError;
-          }
-        } else {
-          console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Channel name unchanged`);
-        }
-      } catch (fetchError) {
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Error fetching channel: ${fetchError.message}`);
-        throw fetchError;
-      }
-    } catch (error) {
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.red('ERROR')} | Error updating player count channel: ${error.message}`);
-      getError(error, 'playerCountChNameUpdate');
-    }
-  }
-
-  try {
-    // If playerCountCH feature is not enabled, exit early
-    if (!config.playerCountCH || !config.playerCountCH.enabled) {
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.yellow('DEBUG')} | playerCountCH is not enabled in config`);
-      return;
-    }
-
-    console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Starting playerCountCH with config: ${JSON.stringify({
-      enabled: config.playerCountCH.enabled,
-      updateInterval: config.playerCountCH.updateInterval,
-      guildID: config.playerCountCH.guildID,
-      channelId: config.playerCountCH.channelId,
-      onlineText: config.playerCountCH.onlineText,
-      offlineText: config.playerCountCH.offlineText
-    })}`);
-
-    // Get the guild based on the configured guild ID
-    const guild = client.guilds.cache.get(config.playerCountCH.guildID);
-    if (!guild) {
-      const error = {
-        message: consoleLogTranslation.playerCountCh.playerCountChGuildIncorrect.replace(
-          /\{guildID\}/gi,
-          config.playerCountCH.guildID
-        ),
-      };
-      getError(error, '');
-      return; // Consider retrying instead of exiting immediately
-    }
-
-    // Read the data.json file asynchronously
-    let dataIDS;
-    try {
-      const dataRaw = await fsPromises.readFile(dataPath, 'utf-8');
-      dataIDS = JSON.parse(dataRaw);
+      // Fetch the channel
+      const channel = await client.channels.fetch(channelId).catch(error => {
+        logger.error(`PlayerCount: Channel ${channelId} not found`, error);
+        return null;
+      });
       
-      // 確保 dataIDS 是一個有效的對象
-      if (!dataIDS || typeof dataIDS !== 'object') {
-        console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.yellow('WARN')} | Invalid data.json content, initializing new object`);
-        dataIDS = {};
+      if (!channel) return;
+      
+      // Get server data
+      const result = await serverDataManager.getServerData(config);
+      logger.info(`PlayerCount: Server data fetched, isOnline=${result?.isOnline}`);
+      
+      // Determine the status name based on server status
+      let statusName;
+      if (result && result.isOnline) {
+        const { data } = result;
+        statusName = playerCountTranslation.playerCount.online
+          .replace(/{playeronline}/g, data.players.online)
+          .replace(/{playermax}/g, data.players.max);
+      } else {
+        statusName = playerCountTranslation.playerCount.offline;
       }
-    } catch (err) {
-      // Initialize data if file doesn't exist or JSON is invalid
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.yellow('WARN')} | Error reading data.json: ${err.message}`);
-      dataIDS = {};
-    }
-    
-    // 確保 playerCountStats 字段存在
-    if (!dataIDS.playerCountStats) {
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | playerCountStats not found in data.json, initializing`);
-      dataIDS.playerCountStats = null;
-    }
-    
-    // 確保 autoChangeStatus 數組存在
-    if (!dataIDS.autoChangeStatus) {
-      console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | autoChangeStatus not found in data.json, initializing empty array`);
-      dataIDS.autoChangeStatus = [];
-    }
-    
-    console.log(`${chalk.gray(new Date().toISOString())} | ${chalk.blue('INFO')} | Current data.json content: ${JSON.stringify(dataIDS)}`);
-
-    // If playerCountStats is not set, attempt to set it up
-    if (!dataIDS.playerCountStats) {
-      if (config.playerCountCH.channelId) {
-        // If a channelId is provided in the config, use that channel
-        const channel = client.channels.cache.get(config.playerCountCH.channelId);
-        if (channel) {
-          console.log(
-            consoleLogTranslation.playerCountCh.playerCountChannelFound.replace(
-              /\{channelName\}/gi,
-              chalk.cyan(channel.name)
-            )
-          );
-          dataIDS.playerCountStats = channel.id;
-          await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2), 'utf-8');
-        } else {
-          // Channel not found
-          const error = {
-            message: consoleLogTranslation.playerCountCh.playerCountChannelFound.replace(
-              /\{channelId\}/gi,
-              chalk.cyan(config.playerCountCH.channelId)
-            ),
-          };
-          getError(error, '');
-          return;
+      
+      logger.info(`PlayerCount: New channel name "${statusName}"`);
+      logger.info(`PlayerCount: Current channel name "${channel.name}"`);
+      
+      // Only update if the name has changed
+      if (channel.name !== statusName) {
+        logger.info(`PlayerCount: Updating channel name to "${statusName}"`);
+        try {
+          await channel.setName(statusName);
+          logger.info(`PlayerCount: Channel name updated to "${statusName}"`);
+          logger.debug(`PlayerCount: Channel ID ${channel.id}, Guild ID ${channel.guild.id}`);
+        } catch (editError) {
+          logger.error(`PlayerCount: Error updating channel name`, editError);
         }
       } else {
-        // If no channelId is provided, create a new channel
-        const result = await serverDataManager.getServerData(config);
-        const statusName = result && result.isOnline
-          ? config.playerCountCH.onlineText
-              .replace(/{playeronline}/g, result.data.players.online)
-              .replace(/{playermax}/g, result.data.players.max)
-          : config.playerCountCH.offlineText;
-        const channel = await guild.channels.create({
-          name: statusName,
-          type: ChannelType.GuildAnnouncement,
-          permissionOverwrites: [
-            {
-              id: guild.roles.everyone.id,
-              deny: ['Connect'],
-            },
-          ],
-        });
-        dataIDS.playerCountStats = channel.id;
-        await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2), 'utf-8');
-        console.log(
-          consoleLogTranslation.playerCountCh.playerCountChannelCreated.replace(
-            /\{updatedStatus\}/gi,
-            chalk.cyan(statusName)
-          )
-        );
+        logger.info('PlayerCount: Channel name unchanged');
+      }
+    } catch (fetchError) {
+      logger.error(`PlayerCount: Error fetching channel`, fetchError);
+    }
+  }
+  
+  try {
+    // Main function to update player count channel
+    async function updatePlayerCount() {
+      try {
+        await playerCountUpdate(config.playerCountCH.channelId);
+      } catch (error) {
+        logger.error(`PlayerCount: Error updating channel`, error);
       }
     }
-
-    // Set up an interval to update the channel name periodically
-    playerCountUpdate(dataIDS.playerCountStats);
-    setInterval(() => {
-      playerCountUpdate(dataIDS.playerCountStats);
-    }, config.playerCountCH.updateInterval * 1000);
+    
+    // Check if player count channel feature is enabled
+    if (!config.playerCountCH || !config.playerCountCH.enabled) {
+      logger.debug('PlayerCount: Feature not enabled in config');
+      return;
+    }
+    
+    // Log configuration
+    logger.info(`Starting playerCountCH with config: ${JSON.stringify({
+      enabled: config.playerCountCH.enabled,
+      channelId: config.playerCountCH.channelId,
+      updateInterval: config.playerCountCH.updateInterval
+    })}`);
+    
+    // Initialize data.json if it doesn't exist
+    let dataIDS = {};
+    try {
+      // Check if data.json exists
+      try {
+        const fileContent = await fsPromises.readFile(dataPath, 'utf8');
+        try {
+          dataIDS = JSON.parse(fileContent);
+        } catch (parseError) {
+          logger.warn('Invalid data.json content, initializing new object');
+          dataIDS = {};
+        }
+      } catch (err) {
+        // File doesn't exist or can't be read
+        logger.warn(`Error reading data.json: ${err.message}`);
+        dataIDS = {};
+      }
+      
+      // Initialize playerCountStats if it doesn't exist
+      if (!dataIDS.playerCountStats) {
+        logger.info('playerCountStats not found in data.json, initializing');
+        dataIDS.playerCountStats = { lastUpdate: Date.now() };
+      }
+      
+      // Initialize autoChangeStatus if it doesn't exist
+      if (!dataIDS.autoChangeStatus) {
+        logger.info('autoChangeStatus not found in data.json, initializing empty array');
+        dataIDS.autoChangeStatus = [];
+      }
+      
+      logger.info(`Current data.json content: ${JSON.stringify(dataIDS)}`);
+      
+      // Write updated data back to file
+      await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2));
+      
+      // Update player count immediately
+      await updatePlayerCount();
+      
+      // Set up interval for regular updates
+      setInterval(async () => {
+        try {
+          await updatePlayerCount();
+          
+          // Update last update time in data.json
+          dataIDS.playerCountStats.lastUpdate = Date.now();
+          await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2));
+          
+          logger.debug(`Player count updated at ${new Date().toISOString()}`);
+        } catch (error) {
+          logger.error(`Error in player count update interval: ${error.message}`, error);
+        }
+      }, config.playerCountCH.updateInterval * 1000);
+      
+    } catch (error) {
+      logger.error(`Failed to initialize playerCountCH: ${error.message}`, error);
+    }
   } catch (error) {
-    getError(error, 'playerCountCh');
+    logger.error(`Unexpected error in playerCountCH: ${error.message}`, error);
   }
 };
