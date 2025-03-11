@@ -34,32 +34,39 @@ USER nodejs
 COPY --from=builder --chown=nodejs:nodejs /app ./
 
 # Set environment variables
-ENV NODE_ENV=production \
-    # Discord Bot Settings
-    DISCORD_BOT_TOKEN="" \
+# These will appear in the Docker environment variables interface
+# Discord Bot Settings
+ENV DISCORD_BOT_TOKEN="" \
     DISCORD_GUILD_ID="" \
-    STATS_CHANNEL_ID="" \
-    # Minecraft Server Settings
-    MC_SERVER_IP="" \
+    STATS_CHANNEL_ID=""
+
+# Minecraft Server Settings
+ENV MC_SERVER_IP="" \
     MC_SERVER_PORT="25565" \
     MC_SERVER_TYPE="java" \
     MC_SERVER_NAME="" \
     MC_SERVER_VERSION="" \
     MC_SERVER_ICON="https://i.imgur.com/6Msem8Q.png" \
-    MC_SERVER_SITE="" \
-    # Language Settings
-    LANGUAGE_MAIN="zh-TW" \
-    # Feature Toggles
-    DEBUG_MODE="false" \
+    MC_SERVER_SITE=""
+
+# Language Settings
+ENV LANGUAGE_MAIN="zh-TW"
+
+# Feature Toggles
+ENV DEBUG_MODE="false" \
     ERROR_LOGGING_ENABLED="true" \
     SERVER_INFO_LOGGING_ENABLED="true" \
     AUTO_CHANGE_STATUS_ENABLED="true" \
     UPDATE_INTERVAL="60" \
     ADMIN_ONLY="false" \
-    PLAYER_AVATAR_EMOJI="true" \
-    # Player Count Feature
-    PLAYER_COUNT_ENABLED="true" \
+    PLAYER_AVATAR_EMOJI="true"
+
+# Player Count Feature
+ENV PLAYER_COUNT_ENABLED="true" \
     PLAYER_COUNT_UPDATE_INTERVAL="60"
+
+# Node Environment
+ENV NODE_ENV="production"
 
 # Use tini as entrypoint
 ENTRYPOINT ["/sbin/tini", "--"]

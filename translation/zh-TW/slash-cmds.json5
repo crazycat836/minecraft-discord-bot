@@ -31,14 +31,28 @@
     name: 'help',
     description: '顯示所有可用的指令',
     options: {
-      command: {
-        name: 'command',
-        description: '要查看的指令名稱',
-      },
+      name: 'command',
+      description: '要查看的指令名稱',
     },
   },
   info: {
     name: 'info',
     description: '顯示機器人的資訊與統計',
+  },
+  setstatus: {
+    name: 'setstatus',
+    description: '在當前頻道設置 Minecraft 伺服器的狀態訊息。',
+    serverName: '輸入您的 Minecraft 伺服器名稱。',
+    serverIp: '輸入您的 Minecraft 伺服器 IP 地址。',
+    serverPort: '輸入您的 Minecraft 伺服器端口號。',
+    serverType: '選擇您的伺服器類型：Java 或 Bedrock',
+    playerAvatar: '管理員選項，在玩家列表旁顯示玩家頭像。',
+    // 使用 {error} 接收錯誤訊息。
+    errorReply: ':warning:  **`由於錯誤無法設置狀態訊息：{error}。`**',
+    enableFeature: '**請在配置中啟用 `auto Change Status` 以啟用狀態訊息功能。**',
+    checkingStatusMsg: ':gear: 正在檢查狀態...',
+    checkingStatusCmdMsg: ':arrows_clockwise: 正在檢查狀態和必要信息。',
+    // 使用 {channel} 提供頻道連結，{messageLink} 提供訊息連結圖標。
+    statusMsgSuccess: ':white_check_mark: **狀態訊息已成功設置在 {channel}。訊息：** {messageLink}。',
   },
 } 

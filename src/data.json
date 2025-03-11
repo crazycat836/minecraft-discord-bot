@@ -1,14 +1,14 @@
 {
-  "playerCountStats": "YOUR_STATS_CHANNEL_ID_HERE",
+  "playerCountStats": "1336554763940139080",
   "autoChangeStatus": [
     {
-      "ip": "YOUR_SERVER_IP_HERE",
+      "ip": "220.135.27.28",
       "port": 25565,
       "type": "java",
-      "name": "YOUR_SERVER_NAME_HERE",
-      "channelId": "YOUR_CHANNEL_ID_HERE",
-      "messageId": "YOUR_MESSAGE_ID_HERE",
-      "isPlayerAvatarEmoji": true
+      "name": "crazycat836’s server",
+      "channelId": "1337812760775626893",
+      "messageId": "1349046195510706220",
+      "isPlayerAvatarEmoji": false
     }
   ]
 }
