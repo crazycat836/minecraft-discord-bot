@@ -1,13 +1,6 @@
 import chalk from 'chalk';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
 
-// Get the directory name of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Log levels with their numeric values (lower = more important)
+// Define log levels
 export const LogLevel = {
   FATAL: 0,   // Critical errors that cause application termination
   ERROR: 1,   // Errors that prevent functionality from working
@@ -37,39 +30,33 @@ const LOG_LABELS = {
   [LogLevel.TRACE]: 'TRACE'
 };
 
-class Logger {
-  constructor() {
+/**
+ * Logger class for consistent logging across the application
+ */
+export class Logger {
+  constructor(options = {}) {
     // Default configuration
     this.config = {
-      level: LogLevel.INFO,  // Default log level
-      useColors: true,       // Use colors in console output
-      showTimestamp: true,   // Show timestamps in log messages
-      logToFile: false,      // Whether to log to a file
-      logFilePath: path.join(__dirname, '../../logs/app.log'), // Default log file path
-      logFileMaxSize: 10 * 1024 * 1024, // 10MB
-      logFileRotation: 5,    // Keep 5 rotated log files
-      modules: {}            // Module-specific log levels
+      level: LogLevel.INFO,
+      useColors: true,
+      showTimestamp: true,
+      modulePrefix: null,
+      ...options
     };
     
-    // Environment-specific configuration
+    // Environment-specific configurations
     this.environments = {
       development: {
         level: LogLevel.TRACE,
-        useColors: true
       },
       test: {
         level: LogLevel.DEBUG,
-        useColors: true
       },
       production: {
         level: LogLevel.INFO,
-        useColors: true,
-        logToFile: true
       },
       docker: {
         level: LogLevel.INFO,
-        useColors: true,
-        logToFile: true
       }
     };
     
@@ -84,14 +71,6 @@ class Logger {
   setEnvironment(env) {
     if (this.environments[env]) {
       this.config = { ...this.config, ...this.environments[env] };
-    }
-    
-    // Create log directory if logging to file is enabled
-    if (this.config.logToFile) {
-      const logDir = path.dirname(this.config.logFilePath);
-      if (!fs.existsSync(logDir)) {
-        fs.mkdirSync(logDir, { recursive: true });
-      }
     }
   }
   
@@ -164,55 +143,6 @@ class Logger {
   }
   
   /**
-   * Write a log message to file if file logging is enabled
-   * @param {string} message - The formatted log message
-   */
-  writeToFile(message) {
-    if (!this.config.logToFile) return;
-    
-    try {
-      // Remove ANSI color codes for file logging
-      const cleanMessage = message.replace(/\u001b\[\d+m/g, '');
-      fs.appendFileSync(this.config.logFilePath, cleanMessage + '\n');
-      
-      // Check file size and rotate if needed
-      const stats = fs.statSync(this.config.logFilePath);
-      if (stats.size > this.config.logFileMaxSize) {
-        this.rotateLogFiles();
-      }
-    } catch (error) {
-      // If we can't write to the log file, output to console
-      console.error(`Failed to write to log file: ${error.message}`);
-    }
-  }
-  
-  /**
-   * Rotate log files when the main log file gets too large
-   */
-  rotateLogFiles() {
-    const baseLogPath = this.config.logFilePath;
-    const maxRotation = this.config.logFileRotation;
-    
-    // Delete the oldest log file if it exists
-    if (fs.existsSync(`${baseLogPath}.${maxRotation}`)) {
-      fs.unlinkSync(`${baseLogPath}.${maxRotation}`);
-    }
-    
-    // Shift all existing log files
-    for (let i = maxRotation - 1; i >= 0; i--) {
-      const oldPath = i === 0 ? baseLogPath : `${baseLogPath}.${i}`;
-      const newPath = `${baseLogPath}.${i + 1}`;
-      
-      if (fs.existsSync(oldPath)) {
-        fs.renameSync(oldPath, newPath);
-      }
-    }
-    
-    // Create a new empty log file
-    fs.writeFileSync(baseLogPath, '');
-  }
-  
-  /**
    * Set module-specific log level
    * @param {string} moduleName - The name of the module
    * @param {number} level - The log level to set for the module
@@ -255,9 +185,6 @@ class Logger {
       
       // Output to console
       console.log(formattedMessage);
-      
-      // Write to file if enabled
-      this.writeToFile(formattedMessage);
     }
   }
   

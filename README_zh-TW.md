@@ -274,8 +274,7 @@ NODE_ENV=production  # 控制預設日誌等級 (development, test, production, 
 settings: {
   logging: {
     level: 'INFO',           // 全域日誌等級
-    logToFile: true,         // 是否寫入檔案
-    logFilePath: 'logs/app.log', // 日誌檔案路徑
+    timezone: '',            // 選擇性的日誌時間戳時區
   }
 }
 ```

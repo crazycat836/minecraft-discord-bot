@@ -39,8 +39,6 @@ export default {
     logging: {
       timezone: '',
       inviteLink: process.env.INVITE_LINK_ENABLED === 'true',
-      logToFile: false,
-      logFilePath: 'logs/app.log',
     },
   },
   autoChangeStatus: {

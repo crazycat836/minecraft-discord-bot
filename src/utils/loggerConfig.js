@@ -18,14 +18,6 @@ export const loggerConfig = {
   // Whether to show timestamps in log messages
   showTimestamp: true,
   
-  // File logging configuration
-  fileLogging: {
-    enabled: false,
-    path: 'logs/app.log',
-    maxSize: 10 * 1024 * 1024, // 10MB
-    rotation: 5 // Keep 5 rotated log files
-  },
-  
   // Configure which modules should be logged at which levels
   // This allows for more granular control over logging
   modules: {}
@@ -42,16 +34,6 @@ export function configureLogger(appConfig) {
   
   // Set log level based on environment
   const level = loggerConfig.defaultLevels[env] || LogLevel.INFO;
-  
-  // Enable file logging if specified in config
-  if (appConfig?.settings?.logging?.logToFile === true) {
-    loggerConfig.fileLogging.enabled = true;
-    
-    // Set log file path if specified
-    if (appConfig.settings.logging.logFilePath) {
-      loggerConfig.fileLogging.path = appConfig.settings.logging.logFilePath;
-    }
-  }
   
   // Set timezone if specified
   if (appConfig?.settings?.logging?.timezone) {

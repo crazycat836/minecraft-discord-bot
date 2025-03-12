@@ -274,8 +274,7 @@ NODE_ENV=production  # Controls default log level (development, test, production
 settings: {
   logging: {
     level: 'INFO',           // Global log level
-    logToFile: true,         // Whether to write logs to file
-    logFilePath: 'logs/app.log', // Log file path
+    timezone: '',            // Optional timezone for log timestamps
   }
 }
 ```
