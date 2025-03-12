@@ -5,7 +5,6 @@ import config from '../../../config.js';
 // Removed unused import: mcstatus
 import {
   statusMessageEdit,
-  consoleLogTranslation,
 } from '../../index.js';
 import serverDataManager from '../../services/serverDataManager.js';
 import logger from '../../utils/logger.js';

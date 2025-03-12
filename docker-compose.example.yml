@@ -30,12 +30,8 @@ services:
       # Supported language codes: en, es, de, fr, pt, ru, uk, zh-TW
       # Please set according to your preference
       # Bot status text and player count channel text are automatically determined
-      # based on the selected language and cannot be directly customized
-      - LANGUAGE_MAIN=  # Please set your desired language, e.g.: en, zh-TW
-      - LANGUAGE_EMBEDS=     # Leave empty to use LANGUAGE_MAIN
-      - LANGUAGE_AUTO_REPLY= # Leave empty to use LANGUAGE_MAIN
-      - LANGUAGE_CONSOLE_LOG= # Leave empty to use LANGUAGE_MAIN
-      - LANGUAGE_SLASH_CMDS= # Leave empty to use LANGUAGE_MAIN
+      # based on the selected language
+      - LANGUAGE_MAIN=en  # Please set your desired language, e.g.: en, zh-TW
       
       # Optional Settings - Status Update Configuration
       # Note: In development/test environments, UPDATE_INTERVAL will be automatically set to 30 seconds

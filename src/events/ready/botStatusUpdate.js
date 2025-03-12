@@ -1,5 +1,4 @@
 import config from '../../../config.js';
-import { consoleLogTranslation } from '../../index.js';
 import chalk from 'chalk';
 import { ActivityType } from 'discord.js';
 import serverDataManager from '../../services/serverDataManager.js';

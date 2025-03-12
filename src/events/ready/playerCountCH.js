@@ -1,12 +1,9 @@
-import chalk from 'chalk';
 import config from '../../../config.js';
-import { consoleLogTranslation } from '../../index.js';
 import serverDataManager from '../../services/serverDataManager.js';
 import { promises as fsPromises } from 'fs';
 import fs from 'fs';
 import json5 from 'json5';
 import path from 'path';
-import { ChannelType } from 'discord.js';
 import logger from '../../utils/logger.js';
 
 // Construct the absolute path for the data.json file

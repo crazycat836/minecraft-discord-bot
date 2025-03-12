@@ -12,7 +12,8 @@
     "docker:build:multi": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push .",
     "docker:push": "docker push crazycat836/minecraftrobot:latest",
     "docker:run": "docker-compose up -d",
-    "docker:stop": "docker-compose down"
+    "docker:stop": "docker-compose down",
+    "docker:generate": "node scripts/generate-docker-compose.js"
   },
   "type": "module",
   "engines": {
@@ -41,6 +42,7 @@
     "commandkit": "^0.1.10",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
+    "js-yaml": "^4.1.0",
     "json5": "^2.2.3",
     "node-mcstatus": "^1.2.1",
     "validator": "^13.12.0"
