@@ -10,7 +10,7 @@ English | [繁體中文](README_zh-TW.md)
 
 A bot that connects your Minecraft server to Discord, providing real-time server status, player count, and various useful commands.
 
-[Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md) | [Documentation]()
+[Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md)
 
 ## Features
 
@@ -363,8 +363,7 @@ Please note that this project is released with an MIT license - see the [LICENSE
 ## Support
 
 If you encounter any issues or have questions, please:
-1. Check the [documentation]()
-2. Open an [issue](https://github.com/crazycat836/minecraft-discord-bot/issues)
+1. Open an [issue](https://github.com/crazycat836/minecraft-discord-bot/issues)
 
 ## Built With
 

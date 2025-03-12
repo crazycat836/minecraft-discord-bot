@@ -10,7 +10,7 @@
 
 一個連接 Minecraft 伺服器和 Discord 的機器人，提供即時伺服器狀態、玩家數量和各種實用指令。
 
-[更新日誌](CHANGELOG.md) | [貢獻指南](CONTRIBUTING.md) | [文檔]()
+[更新日誌](CHANGELOG.md) | [貢獻指南](CONTRIBUTING.md)
 
 ## 功能特色
 
@@ -363,8 +363,7 @@ npm run dev
 ## 支援
 
 如果您遇到任何問題或有疑問，請：
-1. 查看[文檔]()
-2. 開啟[問題](https://github.com/crazycat836/minecraft-discord-bot/issues)
+1. 開啟[問題](https://github.com/crazycat836/minecraft-discord-bot/issues)
 
 ## 使用技術
 
