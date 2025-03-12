@@ -245,6 +245,48 @@ cp -r ./data /path/to/backup
    npm run dev  # Starts the bot in development mode with auto-reload
    ```
 
+## Logging System
+
+The bot includes a unified logging system that provides consistent interfaces for recording messages at different levels of importance.
+
+### Log Levels
+
+The system defines six log levels, from most critical to most detailed:
+
+1. **FATAL** - Critical errors causing application termination
+2. **ERROR** - Errors preventing functionality from working
+3. **WARN** - Warnings about potential issues
+4. **INFO** - Important operational information
+5. **DEBUG** - Detailed information for debugging
+6. **TRACE** - Very detailed tracing information
+
+### Configuration
+
+The logging system can be configured through environment variables or the config file:
+
+```env
+# In .env file
+NODE_ENV=production  # Controls default log level (development, test, production, docker)
+```
+
+```javascript
+// In config.js
+settings: {
+  logging: {
+    level: 'INFO',           // Global log level
+    logToFile: true,         // Whether to write logs to file
+    logFilePath: 'logs/app.log', // Log file path
+  }
+}
+```
+
+### Environment-Specific Defaults
+
+- **development**: Shows all logs (TRACE and above)
+- **test**: Shows debug logs (DEBUG and above)
+- **production**: Shows important logs only (INFO and above)
+- **docker**: Shows important logs only (INFO and above)
+
 ## Multilingual Support
 
 The bot supports the following languages:

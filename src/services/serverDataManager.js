@@ -1,5 +1,4 @@
 import { statusBedrock, statusJava } from 'node-mcstatus';
-import chalk from 'chalk';
 import logger from '../utils/logger.js';
 
 /**

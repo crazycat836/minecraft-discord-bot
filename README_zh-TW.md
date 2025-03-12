@@ -245,6 +245,48 @@ cp -r ./data /path/to/backup
    npm run dev  # 以開發模式啟動機器人（自動重新載入）
    ```
 
+## 日誌系統
+
+本機器人包含一個統一的日誌系統，提供一致的介面來記錄不同重要程度的訊息。
+
+### 日誌等級
+
+系統定義了六種日誌等級，從最重要到最詳細：
+
+1. **FATAL** - 嚴重錯誤，導致應用程式終止
+2. **ERROR** - 錯誤，阻止功能正常運作
+3. **WARN** - 關於潛在問題的警告
+4. **INFO** - 重要的操作資訊
+5. **DEBUG** - 用於除錯的詳細資訊
+6. **TRACE** - 非常詳細的追蹤資訊
+
+### 配置
+
+日誌系統可以通過環境變數或配置檔案進行配置：
+
+```env
+# 在 .env 檔案中
+NODE_ENV=production  # 控制預設日誌等級 (development, test, production, docker)
+```
+
+```javascript
+// 在 config.js 中
+settings: {
+  logging: {
+    level: 'INFO',           // 全域日誌等級
+    logToFile: true,         // 是否寫入檔案
+    logFilePath: 'logs/app.log', // 日誌檔案路徑
+  }
+}
+```
+
+### 環境特定預設值
+
+- **development**：顯示所有日誌 (TRACE 及以上)
+- **test**：顯示除錯日誌 (DEBUG 及以上)
+- **production**：只顯示重要日誌 (INFO 及以上)
+- **docker**：只顯示重要日誌 (INFO 及以上)
+
 ## 多語言支援
 
 本機器人支援以下語言：
