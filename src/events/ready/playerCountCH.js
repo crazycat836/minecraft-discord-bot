@@ -59,13 +59,29 @@ export default async (client) => {
       const result = await serverDataManager.getServerData(config);
       logger.info(`PlayerCount: Server data fetched, isOnline=${result?.isOnline}`);
       
+      // Add detailed debugging
+      logger.debug('PlayerCount: Full result object: ' + JSON.stringify(result, null, 2));
+      if (result && result.data) {
+        logger.debug('PlayerCount: Data object structure: ' + JSON.stringify({
+          hasStatus: !!result.data.status,
+          hasPlayers: !!result.data.players,
+          playersKeys: result.data.players ? Object.keys(result.data.players) : null
+        }, null, 2));
+      }
+      
       // Determine the status name based on server status
       let statusName;
       if (result && result.isOnline) {
         const { data } = result;
-        statusName = playerCountTranslation.playerCount.online
-          .replace(/{playeronline}/g, data.players.online)
-          .replace(/{playermax}/g, data.players.max);
+        // Add defensive programming
+        if (!data || !data.players) {
+          logger.error('PlayerCount: Missing data or players property in server data');
+          statusName = playerCountTranslation.playerCount.offline;
+        } else {
+          statusName = playerCountTranslation.playerCount.online
+            .replace(/{playeronline}/g, data.players.online)
+            .replace(/{playermax}/g, data.players.max);
+        }
       } else {
         statusName = playerCountTranslation.playerCount.offline;
       }
