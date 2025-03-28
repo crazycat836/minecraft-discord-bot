@@ -55,18 +55,25 @@ const ipEmbed = new EmbedBuilder()
 // Offline embed for status commands
 const offlineStatus = () => {
   try {
-    const description = embedTranslation.offlineEmbed.description
-      .replace(/\{ip\}/gi, ip)
-      .replace(/\{port\}/gi, port);
-
-    return new EmbedBuilder()
+    // Create base embed first
+    const embed = new EmbedBuilder()
       .setColor(settings.embedsColors.offline)
       .setThumbnail(mcserver.icon)
       .setAuthor({ name: mcserver.name })
       .setTitle(embedTranslation.offlineEmbed.title)
-      .setDescription(description)
       .setTimestamp()
       .setFooter({ text: embedTranslation.offlineEmbed.footer });
+    
+    // Only set description if it's not empty
+    if (embedTranslation.offlineEmbed.description && embedTranslation.offlineEmbed.description.trim() !== '') {
+      const description = embedTranslation.offlineEmbed.description
+        .replace(/\{ip\}/gi, ip)
+        .replace(/\{port\}/gi, port);
+      
+      embed.setDescription(description);
+    }
+    
+    return embed;
   } catch (error) {
     logger.error('Error creating offline status embed', error);
     return new EmbedBuilder()

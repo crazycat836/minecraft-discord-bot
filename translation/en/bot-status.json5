@@ -10,6 +10,6 @@
   playerCount: {
     // Variables: {playeronline}, {playermax}
     online: '🟢 {playeronline}/{playermax} active players',
-    offline: '�� Offline',
+    offline: '🔴 Offline',
   },
-} 
+}

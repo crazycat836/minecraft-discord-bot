@@ -87,9 +87,10 @@ class ServerDataManager {
         
         // Call the appropriate status function
         const data = await statusFunction(config.mcserver.ip, config.mcserver.port);
+        logger.debug('Server data result:', data);
         
-        // If we get here, the request was successful
-        const isOnline = true;
+        // Check if server is actually online based on returned data
+        const isOnline = data && data.online !== false;
         
         // Log success
         logger.info(`Server ${config.mcserver.ip}:${config.mcserver.port} is ${isOnline ? 'online' : 'offline'}`);
@@ -98,7 +99,7 @@ class ServerDataManager {
         this.cache = {
           data,
           isOnline,
-          playerList: isOnline ? data.players : { online: 0, max: 0, list: [] },
+          playerList: isOnline && data.players ? data.players : { online: 0, max: 0, list: [] },
           lastUpdated: Date.now()
         };
         
