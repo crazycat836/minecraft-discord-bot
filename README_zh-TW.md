@@ -37,6 +37,14 @@
   - `help` - **提供可用指令列表。**
   - `help [command]` - **發送指令的詳細資訊。**
 
+## v1.1.0 版本新功能
+
+- **增強翻譯系統**：使用 i18next 完全重構翻譯系統，使所有功能的翻譯更加可靠且一致。
+- **優化日誌系統**：改進了環境感知的日誌級別，使開發和調試更容易，同時保持生產環境日誌的簡潔。
+- **玩家數量顯示修複**：修復了玩家數量變數在頻道名稱中無法正確顯示的問題。
+- **跨平台環境變數**：新增 cross-env 支援，提升不同作業系統間的相容性。
+- **代碼清理**：移除已棄用的代碼、測試和轉換腳本，精簡代碼庫。
+
 ## 安裝
 
 安裝和運行機器人有兩種主要方式：
@@ -60,46 +68,9 @@ docker run -d \
   crazycat836/minecraft-discord-bot
 ```
 
-### 使用 Docker Compose 部署
-
-對於更穩健的設置，我們推薦使用 Docker Compose：
-
-1. **下載 Docker Compose 配置文件**
-
-```bash
-wget https://raw.githubusercontent.com/crazycat836/minecraft-discord-bot/main/docker-compose.example.yml -O docker-compose.yml
-```
-
-2. **編輯配置文件**
-
-```bash
-nano docker-compose.yml
-```
-
-將佔位符替換為您的實際值：
-- `your_discord_bot_token_here`：您的 Discord 機器人令牌
-- `your_discord_guild_id_here`：您的 Discord 伺服器 ID
-- `your_stats_channel_id_here`：您想要顯示統計資料的頻道 ID
-- `your_minecraft_server_name_here`：您的 Minecraft 伺服器名稱
-- `your_minecraft_server_version_here`：您的 Minecraft 伺服器版本
-- `your_minecraft_server_ip_here`：您的 Minecraft 伺服器 IP
-
-3. **啟動容器**
-
-```bash
-docker-compose up -d
-```
-
-4. **檢查容器狀態和日誌**
-
-```bash
-docker-compose ps
-docker-compose logs -f
-```
-
 ### Docker 環境變數設置方式
 
-使用 Docker 時，有幾種設置環境變數的方法：
+使用 Docker 時，有兩種設置環境變數的方法：
 
 1. **使用命令行參數：**
    ```bash
@@ -113,8 +84,8 @@ docker-compose logs -f
      crazycat836/minecraft-discord-bot
    ```
 
-2. **使用 .env 文件與 docker-compose：**
-   在與 `docker-compose.yml` 相同目錄下創建 `.env` 文件：
+2. **使用環境變數文件：**
+   創建一個 `.env` 文件：
    ```env
    DISCORD_BOT_TOKEN=your_token
    DISCORD_GUILD_ID=your_guild_id
@@ -125,25 +96,7 @@ docker-compose logs -f
    LANGUAGE_MAIN=zh-TW
    ```
    
-   然後在 `docker-compose.yml` 中：
-   ```yaml
-   version: '3.8'
-   services:
-     minecraft-discord-bot:
-       image: crazycat836/minecraft-discord-bot
-       environment:
-         - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-         - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
-         - STATS_CHANNEL_ID=${STATS_CHANNEL_ID}
-         - MC_SERVER_NAME=${MC_SERVER_NAME}
-         - MC_SERVER_VERSION=${MC_SERVER_VERSION}
-         - MC_SERVER_IP=${MC_SERVER_IP}
-         - LANGUAGE_MAIN=${LANGUAGE_MAIN}
-   ```
-   
-   運行：`docker-compose up -d`
-
-3. **使用 Docker 環境文件：**
+   然後運行：
    ```bash
    docker run --env-file .env -d crazycat836/minecraft-discord-bot
    ```
@@ -173,7 +126,7 @@ docker-compose logs -f
 檢查日誌中的錯誤訊息：
 
 ```bash
-docker-compose logs
+docker logs minecraft-discord-bot
 ```
 
 #### Discord 機器人無法連接
@@ -189,16 +142,23 @@ docker-compose logs
 要更新到最新版本，運行：
 
 ```bash
-docker-compose pull
-docker-compose up -d
+docker pull crazycat836/minecraft-discord-bot
+docker stop minecraft-discord-bot
+docker rm minecraft-discord-bot
+# 然後使用上述命令重新啟動容器
 ```
 
 #### 備份數據
 
-容器將數據存儲在 `./data` 目錄中。要備份數據，只需複製此目錄：
+容器將數據存儲在容器內部。如果您需要保存數據，可以考慮使用 Docker 數據卷來持久化數據：
 
 ```bash
-cp -r ./data /path/to/backup
+docker run -d \
+  --name minecraft-discord-bot \
+  -v ./data:/app/data \
+  -e DISCORD_BOT_TOKEN=your_token \
+  # 其他環境變數
+  crazycat836/minecraft-discord-bot
 ```
 
 ### 手動安裝
@@ -342,12 +302,7 @@ npm run dev
 - `npm start` - 以生產模式啟動機器人
 - `npm run dev` - 以開發模式啟動機器人（自動重新載入）
 - `npm run setup` - 從範例模板建立 .env 檔案
-- `npm run docker:build` - 建構您平台的 Docker 映像檔
-- `npm run docker:build:amd64` - 建構 AMD64 平台的 Docker 映像檔
-- `npm run docker:build:multi` - 建構多平台的 Docker 映像檔（AMD64、ARM64）
-- `npm run docker:push` - 將 Docker 映像檔推送到 Docker Hub
-- `npm run docker:run` - 使用 docker-compose 啟動容器
-- `npm run docker:stop` - 停止並移除容器
+- `npm run docker:build` - 建構多平台的 Docker 映像檔並推送到 Docker Hub
 
 ## 版本控制
 
@@ -371,4 +326,5 @@ npm run dev
 - **[Node.js](https://nodejs.org/en/download)** - JavaScript 執行環境
 - **[Discord.js](https://discord.js.org/)** - Discord API 框架
 - **[node-mcstatus](https://www.npmjs.com/package/node-mcstatus)** - Minecraft 伺服器狀態檢查器
-- **[CommandKit](https://commandkit.js.org/)** - 指令框架 
+- **[CommandKit](https://commandkit.js.org/)** - 指令框架
+- **[i18next](https://www.i18next.com/)** - 國際化框架 

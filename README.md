@@ -37,6 +37,14 @@ A bot that connects your Minecraft server to Discord, providing real-time server
   - `help` - **Provides a list of available commands.**
   - `help [command]` - **Sends detailed information about a command.**
 
+## What's New in v1.1.0
+
+- **Enhanced Translation System**: Completely rebuilt the translation system using i18next for more reliable and consistent translations across all features.
+- **Optimized Logging System**: Improved logging with environment-aware log levels, making development and debugging easier while keeping production logs clean.
+- **Player Count Display Fix**: Fixed issues with player count variables not properly displaying in channel names.
+- **Cross-Platform Environment Variables**: Added cross-env support for better compatibility across different operating systems.
+- **Code Cleanup**: Removed deprecated code, tests, and conversion scripts to streamline the codebase.
+
 ## Installation
 
 There are two main ways to install and run the bot:
@@ -60,46 +68,9 @@ docker run -d \
   crazycat836/minecraft-discord-bot
 ```
 
-### Deployment with Docker Compose
-
-For a more robust setup, we recommend using Docker Compose:
-
-1. **Download the Docker Compose configuration file**
-
-```bash
-wget https://raw.githubusercontent.com/crazycat836/minecraft-discord-bot/main/docker-compose.example.yml -O docker-compose.yml
-```
-
-2. **Edit the configuration file**
-
-```bash
-nano docker-compose.yml
-```
-
-Replace the placeholders with your actual values:
-- `your_discord_bot_token_here`: Your Discord bot token
-- `your_discord_guild_id_here`: Your Discord server ID
-- `your_stats_channel_id_here`: The channel ID where you want to display stats
-- `your_minecraft_server_name_here`: Your Minecraft server name
-- `your_minecraft_server_version_here`: Your Minecraft server version
-- `your_minecraft_server_ip_here`: Your Minecraft server IP
-
-3. **Start the container**
-
-```bash
-docker-compose up -d
-```
-
-4. **Check container status and logs**
-
-```bash
-docker-compose ps
-docker-compose logs -f
-```
-
 ### Docker Environment Variable Setup Methods
 
-When using Docker, there are several ways to set environment variables:
+When using Docker, there are two ways to set environment variables:
 
 1. **Using command line arguments:**
    ```bash
@@ -113,8 +84,8 @@ When using Docker, there are several ways to set environment variables:
      crazycat836/minecraft-discord-bot
    ```
 
-2. **Using .env file with docker-compose:**
-   Create a `.env` file in the same directory as your `docker-compose.yml`:
+2. **Using environment file:**
+   Create a `.env` file:
    ```env
    DISCORD_BOT_TOKEN=your_token
    DISCORD_GUILD_ID=your_guild_id
@@ -125,25 +96,7 @@ When using Docker, there are several ways to set environment variables:
    LANGUAGE_MAIN=en
    ```
    
-   Then in your `docker-compose.yml`:
-   ```yaml
-   version: '3.8'
-   services:
-     minecraft-discord-bot:
-       image: crazycat836/minecraft-discord-bot
-       environment:
-         - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-         - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
-         - STATS_CHANNEL_ID=${STATS_CHANNEL_ID}
-         - MC_SERVER_NAME=${MC_SERVER_NAME}
-         - MC_SERVER_VERSION=${MC_SERVER_VERSION}
-         - MC_SERVER_IP=${MC_SERVER_IP}
-         - LANGUAGE_MAIN=${LANGUAGE_MAIN}
-   ```
-   
-   Run: `docker-compose up -d`
-
-3. **Using Docker environment file:**
+   Then run:
    ```bash
    docker run --env-file .env -d crazycat836/minecraft-discord-bot
    ```
@@ -173,7 +126,7 @@ In production environments, these values must be at least 60 seconds to avoid Di
 Check the logs for error messages:
 
 ```bash
-docker-compose logs
+docker logs minecraft-discord-bot
 ```
 
 #### Discord Bot Won't Connect
@@ -189,16 +142,23 @@ Ensure your `MC_SERVER_IP` and `MC_SERVER_PORT` are set correctly and the server
 To update to the latest version, run:
 
 ```bash
-docker-compose pull
-docker-compose up -d
+docker pull crazycat836/minecraft-discord-bot
+docker stop minecraft-discord-bot
+docker rm minecraft-discord-bot
+# Then restart the container using the commands above
 ```
 
 #### Backing Up Data
 
-The container stores data in the `./data` directory. To back up data, simply copy this directory:
+If you need to persist data, you can use Docker volumes:
 
 ```bash
-cp -r ./data /path/to/backup
+docker run -d \
+  --name minecraft-discord-bot \
+  -v ./data:/app/data \
+  -e DISCORD_BOT_TOKEN=your_token \
+  # Other environment variables
+  crazycat836/minecraft-discord-bot
 ```
 
 ### Manual Installation
@@ -342,12 +302,6 @@ npm run dev
 - `npm start` - Start the bot in production mode
 - `npm run dev` - Start the bot in development mode (auto-reload)
 - `npm run setup` - Create .env file from example template
-- `npm run docker:build` - Build Docker image for your platform
-- `npm run docker:build:amd64` - Build Docker image for AMD64 platform
-- `npm run docker:build:multi` - Build multi-platform Docker image (AMD64, ARM64)
-- `npm run docker:push` - Push Docker image to Docker Hub
-- `npm run docker:run` - Start container using docker-compose
-- `npm run docker:stop` - Stop and remove container
 
 ## Versioning
 
@@ -372,3 +326,4 @@ If you encounter any issues or have questions, please:
 - **[Discord.js](https://discord.js.org/)** - Discord API framework
 - **[node-mcstatus](https://www.npmjs.com/package/node-mcstatus)** - Minecraft server status checker
 - **[CommandKit](https://commandkit.js.org/)** - Command framework
+- **[i18next](https://www.i18next.com/)** - Internationalization framework
