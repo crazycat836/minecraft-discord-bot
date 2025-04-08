@@ -40,10 +40,11 @@ A bot that connects your Minecraft server to Discord, providing real-time server
 ## What's New in v1.1.0
 
 - **Enhanced Translation System**: Completely rebuilt the translation system using i18next for more reliable and consistent translations across all features.
-- **Optimized Logging System**: Improved logging with environment-aware log levels, making development and debugging easier while keeping production logs clean.
+- **Optimized Logging System**: Improved logging with environment-aware log levels (development: TRACE, test: DEBUG, production/docker: INFO), making development and debugging easier while keeping production logs clean.
 - **Player Count Display Fix**: Fixed issues with player count variables not properly displaying in channel names.
 - **Cross-Platform Environment Variables**: Added cross-env support for better compatibility across different operating systems.
 - **Code Cleanup**: Removed deprecated code, tests, and conversion scripts to streamline the codebase.
+- **Streamlined Docker Configuration**: Simplified Docker configuration by removing Docker Compose functionality for better usability.
 
 ## Installation
 
@@ -65,7 +66,7 @@ docker run -d \
   -e MC_SERVER_VERSION=your_server_version \
   -e MC_SERVER_IP=your_server_ip \
   -e LANGUAGE_MAIN=en \
-  crazycat836/minecraft-discord-bot
+  crazycat836/minecraftrobot:latest
 ```
 
 ### Docker Environment Variable Setup Methods
@@ -81,7 +82,7 @@ When using Docker, there are two ways to set environment variables:
      -e MC_SERVER_VERSION=1.20.4 \
      -e MC_SERVER_IP=mc.example.com \
      -e LANGUAGE_MAIN=en \
-     crazycat836/minecraft-discord-bot
+     crazycat836/minecraftrobot:latest
    ```
 
 2. **Using environment file:**
@@ -98,7 +99,7 @@ When using Docker, there are two ways to set environment variables:
    
    Then run:
    ```bash
-   docker run --env-file .env -d crazycat836/minecraft-discord-bot
+   docker run --env-file .env -d crazycat836/minecraftrobot:latest
    ```
 
 For a complete list of available environment variables, see the `.env.example` file in the repository.
@@ -146,7 +147,7 @@ When processing server status messages, the bot may temporarily display the serv
 To update to the latest version, run:
 
 ```bash
-docker pull crazycat836/minecraft-discord-bot
+docker pull crazycat836/minecraftrobot:latest
 docker stop minecraft-discord-bot
 docker rm minecraft-discord-bot
 # Then restart the container using the commands above
@@ -162,7 +163,7 @@ docker run -d \
   -v ./data:/app/data \
   -e DISCORD_BOT_TOKEN=your_token \
   # Other environment variables
-  crazycat836/minecraft-discord-bot
+  crazycat836/minecraftrobot:latest
 ```
 
 ### Manual Installation
@@ -194,20 +195,23 @@ docker run -d \
      LANGUAGE_MAIN=en        # Main language (en, es, de, fr, pt, ru, uk, zh-TW)
      ```
 
-4. **Customize Bot Settings (Optional):**
-   - Open `config.js`
-   - Customize bot features:
-     - Auto status updates
-     - Command prefix
-     - Auto reply triggers
-     - And more...
+4. **Start the Bot:**
+   - For development: `npm run dev`
+   - For production: `npm start`
 
-5. **Start the Bot:**
-   ```bash
-   npm start  # Starts the bot in production mode
-   # or
-   npm run dev  # Starts the bot in development mode with auto-reload
-   ```
+5. **Development Commands:**
+   - `npm run setup` - Creates a .env file from the example
+   - `npm run dev` - Runs the bot in development mode with auto-restart
+   - `npm start` - Runs the bot in production mode
+   - `npm run docker:build` - Builds and pushes a multi-platform Docker image
+
+6. **Customize Bot Settings (Optional):**
+   - Open `config.js`
+   - Customize bot features such as:
+     - Auto status updates
+     - Bot activity configuration
+     - Server status message settings
+     - Command prefixes and responses
 
 ## Logging System
 

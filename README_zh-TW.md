@@ -25,7 +25,7 @@
 - **多種 Discord 機器人狀態**：支援 `online`、`idle`、`do not disturb (dnd)` 和 `invisible`。
 - **自動更新玩家數量頻道統計**：自動在頻道計數器中更新玩家數量或伺服器狀態。
 - **自動回應**：啟用自動回應功能，快速提供 IP、狀態、版本和網站等相關訊息。
-- **彩色控制台日誌**：色彩編碼的控制台日誌，提升外觀和清晰度。
+- **彩色控制台日誌**：環境感知日誌級別的彩色控制台日誌。
 - **玩家頭像列表**：在玩家列表中使用表情符號顯示玩家頭像。
 - **多種斜線和前綴指令**：
   - `ip` - **發送 Minecraft 伺服器的地址。**
@@ -37,13 +37,21 @@
   - `help` - **提供可用指令列表。**
   - `help [command]` - **發送指令的詳細資訊。**
 
-## v1.1.0 版本新功能
+## v1.1.1 版本新功能
 
+這是一個維護版本，重新發布了 v1.1.0 並修正了 Docker 映像相關資訊。
+
+### v1.1.1 修復的問題
+- 更新文檔，統一使用正確的 Docker 映像名稱
+- 重新發布並使用正確的 Docker 映像標籤
+
+### v1.1.0 版本的功能
 - **增強翻譯系統**：使用 i18next 完全重構翻譯系統，使所有功能的翻譯更加可靠且一致。
-- **優化日誌系統**：改進了環境感知的日誌級別，使開發和調試更容易，同時保持生產環境日誌的簡潔。
-- **玩家數量顯示修複**：修復了玩家數量變數在頻道名稱中無法正確顯示的問題。
+- **優化日誌系統**：改進了環境感知的日誌級別（開發環境：TRACE、測試環境：DEBUG、生產/Docker 環境：INFO），使開發和調試更容易，同時保持生產環境日誌的簡潔。
+- **玩家數量顯示修復**：修復了玩家數量變數在頻道名稱中無法正確顯示的問題。
 - **跨平台環境變數**：新增 cross-env 支援，提升不同作業系統間的相容性。
 - **代碼清理**：移除已棄用的代碼、測試和轉換腳本，精簡代碼庫。
+- **簡化 Docker 配置**：移除 Docker Compose 功能，簡化 Docker 配置以提高易用性。
 
 ## 安裝
 
@@ -65,7 +73,7 @@ docker run -d \
   -e MC_SERVER_VERSION=your_server_version \
   -e MC_SERVER_IP=your_server_ip \
   -e LANGUAGE_MAIN=zh-TW \
-  crazycat836/minecraft-discord-bot
+  crazycat836/minecraftrobot:latest
 ```
 
 ### Docker 環境變數設置方式
@@ -81,7 +89,7 @@ docker run -d \
      -e MC_SERVER_VERSION=1.20.4 \
      -e MC_SERVER_IP=mc.example.com \
      -e LANGUAGE_MAIN=zh-TW \
-     crazycat836/minecraft-discord-bot
+     crazycat836/minecraftrobot:latest
    ```
 
 2. **使用環境變數文件：**
@@ -98,7 +106,7 @@ docker run -d \
    
    然後運行：
    ```bash
-   docker run --env-file .env -d crazycat836/minecraft-discord-bot
+   docker run --env-file .env -d crazycat836/minecraftrobot:latest
    ```
 
 有關可用環境變數的完整列表，請參閱存儲庫中的 `.env.example` 文件。
@@ -146,7 +154,7 @@ docker logs minecraft-discord-bot
 要更新到最新版本，運行：
 
 ```bash
-docker pull crazycat836/minecraft-discord-bot
+docker pull crazycat836/minecraftrobot:latest
 docker stop minecraft-discord-bot
 docker rm minecraft-discord-bot
 # 然後使用上述命令重新啟動容器
@@ -154,7 +162,7 @@ docker rm minecraft-discord-bot
 
 #### 備份數據
 
-容器將數據存儲在容器內部。如果您需要保存數據，可以考慮使用 Docker 數據卷來持久化數據：
+如果您需要保存數據，可以使用 Docker 數據卷：
 
 ```bash
 docker run -d \
@@ -162,7 +170,7 @@ docker run -d \
   -v ./data:/app/data \
   -e DISCORD_BOT_TOKEN=your_token \
   # 其他環境變數
-  crazycat836/minecraft-discord-bot
+  crazycat836/minecraftrobot:latest
 ```
 
 ### 手動安裝
@@ -194,20 +202,23 @@ docker run -d \
      LANGUAGE_MAIN=zh-TW     # 主要語言 (en, es, de, fr, pt, ru, uk, zh-TW)
      ```
 
-4. **自訂機器人設定（選擇性）：**
-   - 開啟 `config.js`
-   - 自訂機器人功能：
-     - 自動狀態更新
-     - 指令前綴
-     - 自動回覆觸發
-     - 以及更多...
+4. **啟動機器人：**
+   - 開發環境：`npm run dev`
+   - 生產環境：`npm start`
 
-5. **啟動機器人：**
-   ```bash
-   npm start  # 以生產模式啟動機器人
-   # 或
-   npm run dev  # 以開發模式啟動機器人（自動重新載入）
-   ```
+5. **開發指令：**
+   - `npm run setup` - 從範例檔案建立 .env 檔案
+   - `npm run dev` - 以開發模式執行機器人，支援自動重啟
+   - `npm start` - 以生產模式執行機器人
+   - `npm run docker:build` - 建立並推送多平台 Docker 映像檔
+
+6. **自訂機器人設定（選擇性）：**
+   - 開啟 `config.js`
+   - 自訂機器人功能，例如：
+     - 自動狀態更新
+     - 機器人活動配置
+     - 伺服器狀態訊息設置
+     - 指令前綴和回應
 
 ## 日誌系統
 
