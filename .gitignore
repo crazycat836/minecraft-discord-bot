@@ -35,4 +35,7 @@ pids
 *.swo 
 
 # Private configuration files
-release_notes.md 
+release_notes.md
+
+# Runtime data files
+src/data.json 
