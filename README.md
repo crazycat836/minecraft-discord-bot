@@ -137,6 +137,10 @@ Make sure your `DISCORD_BOT_TOKEN` is correct and the bot has been invited to yo
 
 Ensure your `MC_SERVER_IP` and `MC_SERVER_PORT` are set correctly and the server is accessible from the container's network.
 
+#### Temporary Offline Status During Updates
+
+When processing server status messages, the bot may temporarily display the server as offline. This is normal behavior during the update cycle and the status will correct itself in the next update interval.
+
 #### Updating the Bot
 
 To update to the latest version, run:
