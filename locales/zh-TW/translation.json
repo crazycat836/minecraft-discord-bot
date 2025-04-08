@@ -1,0 +1,246 @@
+{
+  "console-log": {
+    "startup": {
+      "botStarting": "正在啟動 {botName}...",
+      "botStarted": "{botName} 已啟動！",
+      "botStopped": "{botName} 已停止！",
+      "botReady": "{botName} 已就緒！",
+      "botError": "{botName} 發生錯誤！"
+    },
+    "config": {
+      "configLoaded": "已載入配置：{configName}",
+      "configError": "載入配置時發生錯誤：{configName}",
+      "configSaved": "已儲存配置：{configName}",
+      "configNotFound": "找不到配置：{configName}"
+    },
+    "commands": {
+      "commandLoaded": "已載入指令：{commandName}",
+      "commandError": "載入指令時發生錯誤：{commandName}",
+      "commandExecuted": "已執行指令：{commandName}",
+      "commandNotFound": "找不到指令：{commandName}"
+    },
+    "events": {
+      "eventLoaded": "已載入事件：{eventName}",
+      "eventError": "載入事件時發生錯誤：{eventName}",
+      "eventExecuted": "已執行事件：{eventName}",
+      "eventNotFound": "找不到事件：{eventName}"
+    },
+    "minecraft": {
+      "serverConnected": "已連接到 Minecraft 伺服器：{serverName}",
+      "serverDisconnected": "已斷開與 Minecraft 伺服器的連接：{serverName}",
+      "serverError": "連接到 Minecraft 伺服器時發生錯誤：{serverName}",
+      "serverNotFound": "找不到 Minecraft 伺服器：{serverName}"
+    },
+    "discord": {
+      "guildJoined": "已加入 Discord 伺服器：{guildName}",
+      "guildLeft": "已離開 Discord 伺服器：{guildName}",
+      "guildError": "處理 Discord 伺服器時發生錯誤：{guildName}",
+      "guildNotFound": "找不到 Discord 伺服器：{guildName}"
+    },
+    "database": {
+      "databaseConnected": "已連接到資料庫：{databaseName}",
+      "databaseDisconnected": "已斷開與資料庫的連接：{databaseName}",
+      "databaseError": "連接到資料庫時發生錯誤：{databaseName}",
+      "databaseNotFound": "找不到資料庫：{databaseName}"
+    },
+    "error": {
+      "playerEmbed": "創建玩家列表嵌入訊息時發生錯誤。",
+      "statusEmbed": "創建狀態嵌入訊息時發生錯誤。",
+      "playerList": "創建玩家列表時發生錯誤。",
+      "fetchServerDataAndPlayerList": "獲取 Minecraft 伺服器數據和玩家列表失敗。",
+      "fetchServerData": "獲取 Minecraft 伺服器數據失敗。",
+      "messageEdit": "編輯狀態訊息時發生錯誤。",
+      "botLogin": "機器人登入錯誤。",
+      "infoCmd": "斜線指令錯誤 - 資訊。",
+      "motdCmd": "斜線指令錯誤 - MOTD。",
+      "playerCmd": "斜線指令錯誤 - 玩家。",
+      "statusCmd": "斜線指令錯誤 - 狀態。",
+      "statusPrefix": "前綴指令錯誤 - 狀態。",
+      "setStatus": "設置狀態訊息失敗。",
+      "autoReply": "自動回覆功能錯誤。",
+      "botStatusUpdate": "更新機器人狀態時發生錯誤。",
+      "channelIdCheck": "頻道 ID 檢查和更新時發生錯誤。",
+      "playerCountCh": "玩家計數頻道功能錯誤。",
+      "playerCountChNameUpdate": "更新玩家計數頻道名稱時發生錯誤。",
+      "playerCountChDateWrite": "在 data.json 中保存玩家計數頻道 ID 時發生錯誤。",
+      "playerAvatarGuildIdCheck": "檢查玩家頭像公會 ID 時發生錯誤。",
+      "playerAvatarEmojiError": "管理玩家頭像表情符號時發生錯誤"
+    },
+    "debug": {
+      "autoChangeStatus": {
+        "onlineText": "在線，有 {playerOnline} 名玩家正在遊玩。",
+        "offlineText": "❌ 離線。",
+        "format": "狀態嵌入訊息已更新為 {statusText}。",
+        "successLog": "成功在 {channelName} 中設置狀態訊息。",
+        "enableAutoChangeStatus": "要設置伺服器狀態，請在所需頻道中發送 {cmd} 指令。",
+        "playerAvatarGuildSuccessFull": "公會：`{playerAvatarGuildName}` 已成功找到並設置為玩家頭像表情符號的伺服器。",
+        "playerAvatarGuildUnSuccessFull": "無法找到 ID 為 `{playerAvatarGuildID}` 的玩家頭像表情符號公會，或機器人不在該公會中。"
+      },
+      "botStatusFormat": "機器人的活動已更新為 {botStatusText}。",
+      "playerCountChUpdate": "玩家計數頻道名稱已更新為 {updatedName}。"
+    },
+    "checkErrorConfig": {
+      "checkConfigWait": "正在檢查 config.js 文件中的錯誤。請稍候。",
+      "followingErrors": "配置文件有以下錯誤：",
+      "botToken": "無效的機器人令牌。",
+      "botPresenceStatus": "無效的機器人狀態選項。應為 'online'、'idle'、'dnd' 或 'invisible'。",
+      "botStatusActivity": "無效的機器人活動選項。應為 'Playing'、'Listening'、'Watching' 或 'Competing'。",
+      "mcType": "無效的 Minecraft 伺服器類型。應為 \"java\" 或 \"bedrock\"。",
+      "mcName": "未指定 Minecraft 伺服器的名稱。",
+      "mcVersion": "未指定 Minecraft 伺服器的版本。",
+      "guildID": "未指定伺服器/公會 ID 或無效。",
+      "timeZone": "配置文件中指定的時區無效。",
+      "slashCmdName": "為 \"{cmdName}\" 指令提供的名稱 \"{givenCmdName}\" 無效。\n請僅使用小寫、大寫、標題大小寫字母、數字、下劃線和連字符。"
+    },
+    "playerCountCh": {
+      "playerCountChGuildIncorrect": "未找到 ID 為：\"{guildID}\" 的公會，或機器人不在該公會中。",
+      "playerCountChannelFound": "成功找到玩家計數的頻道：{channelName}。",
+      "playerCountChannelNotFound": "未找到 ID 為：\"{channelId}\" 的玩家計數頻道，或機器人無法訪問該頻道。",
+      "playerCountChannelCreated": "已創建玩家計數頻道並將其名稱更新為：{updatedStatus}。"
+    },
+    "inviteLink": "✅ {botUserTag} 已上線。\n使用 {inviteLink} 邀請機器人。",
+    "serverInfoStart": {
+      "online": [
+        "--------------------------------------------------------",
+        "IP       | {ip}",
+        "版本     | {version}",
+        "玩家     | {playersOnline} / {playersMax}",
+        "MOTD     | {motd_line1}",
+        "         | {motd_line2}",
+        "--------------------------------------------------------"
+      ],
+      "offline": [
+        "目前無法找到具有以下信息的 Minecraft 伺服器：",
+        "----------------------------------------------",
+        "IP   | {ip}",
+        "端口 | {port}",
+        "類型 | {mcServerType}",
+        "----------------------------------------------"
+      ]
+    }
+  },
+  "embeds": {
+    "ip": {
+      "title": "__**伺服器地址**__",
+      "description": "**{ip}**"
+    },
+    "site": {
+      "title": "__**網站**__",
+      "description": "**連結：{site}**"
+    },
+    "version": {
+      "title": "__**版本**__",
+      "description": "**{version}**"
+    },
+    "offlineEmbed": {
+      "title": ":red_circle: 離線",
+      "description": "",
+      "footer": "檢查時間"
+    },
+    "players": {
+      "title": "__**玩家**__",
+      "description": "**{playeronline}/{playermax}**"
+    },
+    "motd": {
+      "title": "__**每日訊息**__",
+      "description": "**{motd}**"
+    },
+    "onlineEmbed": {
+      "title": ":green_circle: 在線",
+      "description_field_one": "__**每日訊息**__\n**{motd}**\n\n__**伺服器地址**__\n**{ip}**",
+      "description_field_two": "‎ \n__**版本**__\n**{version}**{siteText}",
+      "siteText": "\n\n__**網站**__\n**連結：{site}**",
+      "footer": "檢查時間"
+    },
+    "help": {
+      "title": "__**指令列表**__",
+      "description": "**前綴：`{prefix}`**",
+      "listFormat": "{slashCmdMention} **`-` {cmdDescription}**",
+      "commandInfoFormat": {
+        "title": "__**{cmdName} 指令**__",
+        "description": "**斜線指令：{cmdSlashMention}\n描述：`{cmdDescription}`\n前綴指令：`{prefixCmd}`\n前綴別名：{prefixCmdAlias}**"
+      }
+    },
+    "info": {
+      "title": "**機器人資訊與統計**",
+      "description": "**CPU 使用率：`{cpuUsage}%`\n記憶體使用率：`{memoryUsage}MB`\nNode.js 版本：`{nodeVersion}`\n運行時間：`{uptimeDays}` 天 `{uptimeHours}` 小時 `{uptimeMinutes}` 分鐘 `{uptimeSeconds}` 秒\n延遲：客戶端 `{ping}ms` | Websocket：`{websocket}ms` **"
+    }
+  },
+  "slash-cmds": {
+    "ip": {
+      "name": "ip",
+      "description": "取得伺服器的 IP 地址"
+    },
+    "motd": {
+      "name": "motd",
+      "description": "取得伺服器的每日訊息"
+    },
+    "players": {
+      "name": "players",
+      "description": "顯示目前在線的玩家列表"
+    },
+    "status": {
+      "name": "status",
+      "description": "檢查伺服器的當前狀態"
+    },
+    "version": {
+      "name": "version",
+      "description": "取得伺服器的版本"
+    },
+    "site": {
+      "name": "site",
+      "description": "取得伺服器的網站連結"
+    },
+    "help": {
+      "name": "help",
+      "description": "顯示所有可用的指令",
+      "options": {
+        "name": "command",
+        "description": "要查看的指令名稱"
+      }
+    },
+    "info": {
+      "name": "info",
+      "description": "顯示機器人的資訊與統計"
+    },
+    "setstatus": {
+      "name": "setstatus",
+      "description": "在當前頻道設置 Minecraft 伺服器的狀態訊息。",
+      "serverName": "輸入您的 Minecraft 伺服器名稱。",
+      "serverIp": "輸入您的 Minecraft 伺服器 IP 地址。",
+      "serverPort": "輸入您的 Minecraft 伺服器端口號。",
+      "serverType": "選擇您的伺服器類型：Java 或 Bedrock",
+      "playerAvatar": "管理員選項，在玩家列表旁顯示玩家頭像。",
+      "errorReply": ":warning:  **`由於錯誤無法設置狀態訊息：{error}。`**",
+      "enableFeature": "**請在配置中啟用 `auto Change Status` 以啟用狀態訊息功能。**",
+      "checkingStatusMsg": ":gear: 正在檢查狀態...",
+      "checkingStatusCmdMsg": ":arrows_clockwise: 正在檢查狀態和必要信息。",
+      "statusMsgSuccess": ":white_check_mark: **狀態訊息已成功設置在 {channel}。訊息：** {messageLink}。"
+    }
+  },
+  "auto-reply": {
+    "version": {
+      "replyText": "伺服器版本：**`{version}`**"
+    },
+    "ip": {
+      "replyText": "**IP：`{ip}`\n端口：`{port}`**"
+    },
+    "site": {
+      "replyText": "伺服器網站：**<{site}>**"
+    },
+    "status": {
+      "onlineReply": "伺服器目前**`🟢在線`**，有 **`{playerOnline}/{playerMax}`** 位玩家在線",
+      "offlineReply": "伺服器目前**`🔴離線`**"
+    }
+  },
+  "bot-status": {
+    "botStatus": {
+      "online": "正在與 {playeronline}/{playermax} 位玩家遊玩",
+      "offline": "伺服器離線中"
+    },
+    "playerCount": {
+      "online": "🟢 {playeronline}/{playermax} 位玩家在線",
+      "offline": "🔴 離線中"
+    }
+  }
+}

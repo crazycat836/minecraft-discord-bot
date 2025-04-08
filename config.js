@@ -25,7 +25,7 @@ export default {
   },
   settings: {
     language: {
-      main: process.env.LANGUAGE_MAIN || 'en',
+      main: process.env.LANGUAGE_MAIN || '',
       embeds: process.env.LANGUAGE_EMBEDS || '',
       autoReply: process.env.LANGUAGE_AUTO_REPLY || '',
       consoleLog: process.env.LANGUAGE_CONSOLE_LOG || '',

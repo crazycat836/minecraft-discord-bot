@@ -4,16 +4,10 @@
   "description": "A feature-rich and highly customizable Discord bot that provides information about your Minecraft server.",
   "main": "src/index.js",
   "scripts": {
-    "start": "NODE_ENV=production node src/index.js",
-    "dev": "NODE_ENV=development node --watch src/index.js",
+    "start": "cross-env NODE_ENV=production node src/index.js",
+    "dev": "cross-env NODE_ENV=development node --watch src/index.js",
     "setup": "cp .env.example .env && echo 'Created .env file from example. Please edit it with your settings.'",
-    "docker:build": "docker build -t crazycat836/minecraftrobot:latest .",
-    "docker:build:amd64": "docker buildx build --platform linux/amd64 -t crazycat836/minecraftrobot:latest --push .",
-    "docker:build:multi": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push .",
-    "docker:push": "docker push crazycat836/minecraftrobot:latest",
-    "docker:run": "docker-compose up -d",
-    "docker:stop": "docker-compose down",
-    "docker:generate": "node scripts/generate-docker-compose.js"
+    "docker:build": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push ."
   },
   "type": "module",
   "engines": {
@@ -40,11 +34,16 @@
   "dependencies": {
     "chalk": "^5.4.1",
     "commandkit": "^0.1.10",
+    "cross-env": "^7.0.3",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
-    "js-yaml": "^4.1.0",
+    "i18next": "^24.2.3",
+    "i18next-browser-languagedetector": "^8.0.4",
+    "i18next-fs-backend": "^2.6.0",
+    "i18next-http-backend": "^3.0.2",
     "json5": "^2.2.3",
     "node-mcstatus": "^1.2.1",
+    "react-i18next": "^15.4.1",
     "validator": "^13.12.0"
   }
 }

@@ -35,6 +35,4 @@ pids
 *.swo 
 
 # Private configuration files
-docker-compose.private.yml
-docker-compose.yml
 release_notes.md 

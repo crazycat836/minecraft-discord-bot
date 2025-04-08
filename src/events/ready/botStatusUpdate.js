@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { ActivityType } from 'discord.js';
 import serverDataManager from '../../services/serverDataManager.js';
 import logger from '../../utils/logger.js';
-import translationManager from '../../utils/translationManager.js';
+import i18n from '../../utils/i18n.js';
 
 // Define statusEmojis outside the function to avoid recreating it on every call
 const statusEmojis = {
@@ -31,7 +31,7 @@ export default async (client) => {
           status: presence.status.offline,
           activities: [
             {
-              name: translationManager.getText('bot-status', 'botStatus.offline'),
+              name: i18n.getText('bot-status', 'botStatus.offline'),
               type: ActivityType[presence.activity],
             },
           ],
@@ -45,7 +45,7 @@ export default async (client) => {
       let presenceData;
       if (isOnline) {
         // Get translation with player data
-        const statusText = translationManager.getText('bot-status', 'botStatus.online', {
+        const statusText = i18n.getText('bot-status', 'botStatus.online', {
           playeronline: data.players.online,
           playermax: data.players.max
         });
@@ -64,7 +64,7 @@ export default async (client) => {
           status: presence.status.offline,
           activities: [
             {
-              name: translationManager.getText('bot-status', 'botStatus.offline'),
+              name: i18n.getText('bot-status', 'botStatus.offline'),
               type: ActivityType[presence.activity],
             },
           ],
@@ -78,7 +78,7 @@ export default async (client) => {
           status: presence.status.offline,
           activities: [
             {
-              name: translationManager.getText('bot-status', 'botStatus.offline'),
+              name: i18n.getText('bot-status', 'botStatus.offline'),
               type: ActivityType[presence.activity],
             },
           ],

@@ -1,4 +1,5 @@
 import { LogLevel } from './logger.js';
+import logger from './logger.js';
 
 /**
  * Logger configuration that can be imported and modified by the application
@@ -6,10 +7,10 @@ import { LogLevel } from './logger.js';
 export const loggerConfig = {
   // Default log level based on environment
   defaultLevels: {
-    development: LogLevel.WARN,
-    test: LogLevel.WARN,
-    production: LogLevel.WARN,
-    docker: LogLevel.WARN
+    development: LogLevel.TRACE,
+    test: LogLevel.DEBUG,
+    production: LogLevel.INFO,
+    docker: LogLevel.INFO
   },
   
   // Whether to use colors in console output
@@ -22,13 +23,6 @@ export const loggerConfig = {
   // This allows for more granular control over logging
   modules: {
     // Critical modules - only show important data retrieval and errors
-    'serverDataManager': LogLevel.WARN,
-    'PlayerCount': LogLevel.ERROR,
-    'StatusMsg': LogLevel.ERROR,
-    'autoChangeStatus': LogLevel.ERROR,
-    'AutoChangeStatus': LogLevel.ERROR,
-    'BotStatus': LogLevel.ERROR,
-    'playerCountCH': LogLevel.ERROR
   }
 };
 
@@ -51,6 +45,9 @@ export function configureLogger(appConfig) {
   
   // Update the configuration
   loggerConfig.level = level;
+  
+  // Apply configuration to the logger instance
+  logger.configure(loggerConfig);
   
   return loggerConfig;
 }

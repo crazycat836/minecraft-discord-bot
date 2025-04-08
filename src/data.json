@@ -1,5 +1,8 @@
 {
-  "playerCountStats": "1336554763940139080",
+  "playerCountStats": {
+    "channelId": "1336554763940139080",
+    "lastUpdate": 1744110238949
+  },
   "autoChangeStatus": [
     {
       "ip": "220.135.27.28",

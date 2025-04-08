@@ -43,34 +43,15 @@ export class Logger {
       modulePrefix: null,
       ...options
     };
-    
-    // Environment-specific configurations
-    this.environments = {
-      development: {
-        level: LogLevel.TRACE,
-      },
-      test: {
-        level: LogLevel.DEBUG,
-      },
-      production: {
-        level: LogLevel.INFO,
-      },
-      docker: {
-        level: LogLevel.INFO,
-      }
-    };
-    
-    // Initialize with default environment
-    this.setEnvironment(process.env.NODE_ENV || 'development');
   }
   
   /**
-   * Configure the logger for a specific environment
-   * @param {string} env - The environment name ('development', 'production', 'test', 'docker')
+   * Configure the logger with the given configuration
+   * @param {Object} config - Configuration object
    */
-  setEnvironment(env) {
-    if (this.environments[env]) {
-      this.config = { ...this.config, ...this.environments[env] };
+  configure(config) {
+    if (config) {
+      this.config = { ...this.config, ...config };
     }
   }
   

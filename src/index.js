@@ -7,7 +7,6 @@ import chalk from 'chalk';
 import fs from 'fs';
 import { CommandKit } from 'commandkit';
 import process from 'node:process';
-import json5 from 'json5';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import serverDataManager from './services/serverDataManager.js';
@@ -15,14 +14,10 @@ import serverDataManager from './services/serverDataManager.js';
 // Import the logger and translation systems
 import logger, { LogLevel } from './utils/logger.js';
 import { configureLogger } from './utils/loggerConfig.js';
-import loggerMigration from './utils/loggerMigration.js';
-import translationManager from './utils/translationManager.js';
+import languageService from './services/languageService.js';
 
 // Configure the logger based on the application config
 configureLogger(config);
-
-// For backward compatibility, extract the migration functions
-const { getWarning: migrationGetWarning, getDebug: migrationGetDebug } = loggerMigration;
 
 // ---------------------
 // Global Variables & Setup
@@ -72,10 +67,10 @@ process.on('unhandledRejection', (reason) => {
 // Translation Constants
 // ---------------------
 
-// Get translations using the manager
-const embedTranslation = translationManager.getTranslation('embeds');
-const consoleLogTranslation = translationManager.getTranslation('console-log');
-const cmdSlashTranslation = translationManager.getTranslation('slash-cmds');
+// Get translations using languageService
+const embedTranslation = languageService.getTranslation('embeds');
+const consoleLogTranslation = languageService.getTranslation('console-log');
+const cmdSlashTranslation = languageService.getTranslation('slash-cmds');
 
 // ---------------------
 // Configuration Checks
@@ -205,13 +200,9 @@ const groupPlayerList = (playerListArrayRaw) => {
   return baseEmbed;
 };
 
-function getWarning(warningMessage) {
-  migrationGetWarning(warningMessage);
-}
-
-function getDebug(debugMessage) {
-  migrationGetDebug(debugMessage);
-}
+// ---------------------
+// Server Data Functions
+// ---------------------
 
 const getServerDataAndPlayerList = async (dataOnly) => {
   try {
@@ -419,9 +410,7 @@ export {
   statusMessageEdit,
   embedTranslation,
   cmdSlashTranslation,
-  consoleLogTranslation,
-  getWarning,
-  getDebug,
+  consoleLogTranslation
 };
 
 // ---------------------
