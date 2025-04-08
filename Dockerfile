@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Copy only necessary files
 COPY src ./src
-COPY translation ./translation
+COPY locales ./locales
 COPY config.js ./
 
 # Production stage
