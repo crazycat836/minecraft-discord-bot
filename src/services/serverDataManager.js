@@ -3,23 +3,12 @@ import logger from '../utils/logger.js';
 
 /**
  * ServerDataManager - Centralized management of Minecraft server status data
- * Implements request merging, data caching, and subscription mechanism
+ * Implements request merging and subscription mechanism
  */
 class ServerDataManager {
   constructor() {
-    // Cached data
-    this.cache = {
-      data: null,
-      isOnline: false,
-      playerList: [],
-      lastUpdated: 0
-    };
-    
     // Current ongoing request
     this.pendingRequest = null;
-    
-    // Cache expiration time (milliseconds)
-    this.cacheExpiry = 30000; // 30 seconds
     
     // Retry settings
     this.maxRetries = 3;
@@ -33,23 +22,11 @@ class ServerDataManager {
   }
   
   /**
-   * Get server data, use cache if valid
+   * Get server data
    * @param {Object} config - Configuration object
-   * @param {boolean} forceRefresh - Whether to force refresh the cache
    * @returns {Promise<Object>} - Server data
    */
-  async getServerData(config, forceRefresh = false) {
-    const now = Date.now();
-    
-    // If cache is valid and no force refresh, return cache directly
-    if (!forceRefresh && this.cache.data && (now - this.cache.lastUpdated) < this.cacheExpiry) {
-      return {
-        data: this.cache.data,
-        isOnline: this.cache.isOnline,
-        playerList: this.cache.playerList
-      };
-    }
-    
+  async getServerData(config) {
     // If there's already a request in progress, wait for it to complete
     if (this.pendingRequest) {
       return this.pendingRequest;
@@ -75,9 +52,6 @@ class ServerDataManager {
   async _fetchServerData(config) {
     this.requestCount++;
     
-    // Log the request
-    logger.info(`Fetching server data (request #${this.requestCount}) for ${config.mcserver.ip}:${config.mcserver.port}`);
-    
     let retries = 0;
     
     while (retries <= this.maxRetries) {
@@ -87,29 +61,20 @@ class ServerDataManager {
         
         // Call the appropriate status function
         const data = await statusFunction(config.mcserver.ip, config.mcserver.port);
-        logger.debug('Server data result:', data);
         
         // Check if server is actually online based on returned data
         const isOnline = data && data.online !== false;
         
-        // Log success
-        logger.info(`Server ${config.mcserver.ip}:${config.mcserver.port} is ${isOnline ? 'online' : 'offline'}`);
-        
-        // Update cache
-        this.cache = {
-          data,
-          isOnline,
-          playerList: isOnline && data.players ? data.players : { online: 0, max: 0, list: [] },
-          lastUpdated: Date.now()
-        };
+        // Prepare player list data
+        const playerList = isOnline && data.players ? data.players : { online: 0, max: 0, list: [] };
         
         // Notify subscribers
-        this._notifySubscribers();
+        this._notifySubscribers({ data, isOnline, playerList });
         
         return {
           data,
           isOnline,
-          playerList: this.cache.playerList
+          playerList
         };
       } catch (error) {
         // Check if this is a rate limit error
@@ -125,21 +90,16 @@ class ServerDataManager {
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
-          // Log other errors
-          logger.error(`Failed to fetch server data for ${config.mcserver.ip}:${config.mcserver.port}: ${error.message}`);
+          // Log other errors with full details
+          logger.error(`Failed to fetch server data: ${error.message}`);
           
           // For non-rate limit errors, return offline status immediately
-          this.cache = {
-            data: null,
-            isOnline: false,
-            playerList: { online: 0, max: 0, list: [] },
-            lastUpdated: Date.now()
-          };
+          const result = { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
           
           // Notify subscribers
-          this._notifySubscribers();
+          this._notifySubscribers(result);
           
-          return { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
+          return result;
         }
       }
     }
@@ -147,17 +107,12 @@ class ServerDataManager {
     // If we've exhausted all retries
     logger.error(`All retries failed for ${config.mcserver.ip}:${config.mcserver.port}, returning offline status`);
     
-    this.cache = {
-      data: null,
-      isOnline: false,
-      playerList: { online: 0, max: 0, list: [] },
-      lastUpdated: Date.now()
-    };
+    const result = { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
     
     // Notify subscribers
-    this._notifySubscribers();
+    this._notifySubscribers(result);
     
-    return { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
+    return result;
   }
   
   /**
@@ -176,58 +131,18 @@ class ServerDataManager {
   
   /**
    * Notify all subscribers of data changes
+   * @param {Object} data - The data to send to subscribers
    */
-  _notifySubscribers() {
+  _notifySubscribers(data) {
     if (this.subscribers.length > 0) {
-      const { data, isOnline, playerList } = this.cache;
-      
       this.subscribers.forEach(callback => {
         try {
-          callback({ data, isOnline, playerList });
+          callback(data);
         } catch (error) {
           logger.error('Error in subscriber callback:', error);
         }
       });
     }
-  }
-  
-  /**
-   * Get current date time string
-   * @private
-   * @returns {string} - Formatted date time string
-   */
-  _getDateNow() {
-    const date = new Date();
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-      timeZoneName: 'short'
-    });
-  }
-  
-  /**
-   * Set cache expiration time
-   * @param {number} milliseconds - Cache expiration time (milliseconds)
-   */
-  setCacheExpiry(milliseconds) {
-    this.cacheExpiry = milliseconds;
-  }
-  
-  /**
-   * Manually clear cache
-   */
-  clearCache() {
-    this.cache = {
-      data: null,
-      isOnline: false,
-      playerList: [],
-      lastUpdated: 0
-    };
   }
 }
 

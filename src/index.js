@@ -23,18 +23,6 @@ configureLogger(config);
 // For backward compatibility, extract the migration functions
 const { getWarning: migrationGetWarning, getDebug: migrationGetDebug } = loggerMigration;
 
-// Debug: Log environment variables to verify they are loaded
-logger.debug('System: Environment variables loaded');
-logger.debug(`DISCORD_BOT_TOKEN exists: ${!!process.env.DISCORD_BOT_TOKEN}`);
-logger.debug(`MC_SERVER_NAME: ${process.env.MC_SERVER_NAME || 'Not set'}`);
-logger.debug(`MC_SERVER_VERSION: ${process.env.MC_SERVER_VERSION || 'Not set'}`);
-
-// Debug: Log config object to verify it's correctly populated
-logger.debug('Config Object Debug:');
-logger.debug(`config.bot.token exists: ${!!config.bot.token}`);
-logger.debug(`config.mcserver.name: ${config.mcserver.name || 'Not set'}`);
-logger.debug(`config.mcserver.version: ${config.mcserver.version || 'Not set'}`);
-
 // ---------------------
 // Global Variables & Setup
 // ---------------------
@@ -295,6 +283,13 @@ const getPlayersList = async (playerListRaw) => {
       : groupPlayerList(playerListRaw);
   } catch (error) {
     logger.error('Error processing player list', error);
+    // Return a default value when an error occurs
+    return [
+      {
+        name: embedTranslation.players.title,
+        value: 'Error retrieving player list',
+      },
+    ];
   }
 };
 
@@ -337,8 +332,6 @@ const getPlayersListWithEmoji = async (playerListRaw, client) => {
 
 const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEmoji, client) => {
   try {
-    logger.info(`StatusMsg: Editing message for ${ip}:${port}`);
-    
     // Create a temporary config object to get data for a specific server
     const tempConfig = {
       ...config,
@@ -352,7 +345,6 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
     
     // Use serverDataManager to get server data
     const result = await serverDataManager.getServerData(tempConfig);
-    logger.info(`StatusMsg: Server data fetched, isOnline=${result?.isOnline}`);
     
     // If unable to get data, display offline status
     if (!result || !result.data) {
@@ -370,7 +362,6 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
     const ipaddress = type === 'bedrock' ? ipBedrock : ipJava;
     
     if (isOnline) {
-      logger.info('StatusMsg: Server is online, creating online embed');
       let playerList;
       try {
         playerList =
@@ -378,7 +369,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
             ? await getPlayersListWithEmoji(data.players, client)
             : await getPlayersList(data.players);
       } catch (playerListError) {
-        logger.warn('StatusMsg: Failed to get player list', playerListError);
+        logger.error('StatusMsg: Failed to get player list', playerListError);
         playerList = [];
       }
       
@@ -405,9 +396,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
         .setTimestamp()
         .setFooter({ text: embedTranslation.onlineEmbed.footer });
       await message.edit({ content: '', embeds: [onlineEmbed] });
-      logger.info('StatusMsg: Message updated with online status');
     } else {
-      logger.warn('StatusMsg: Server is offline, showing offline status');
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
     }
@@ -416,7 +405,6 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
     
     try {
       // Try to display offline status even when an error occurs
-      logger.error('StatusMsg: Failed to show offline status');
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
     } catch (secondError) {

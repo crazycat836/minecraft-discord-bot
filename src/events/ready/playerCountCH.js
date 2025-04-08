@@ -44,8 +44,6 @@ export default async (client) => {
         logger.error('PlayerCount: Channel ID is undefined');
         return;
       }
-
-      logger.debug(`PlayerCount: Updating channel ${channelId}`);
       
       // Fetch the channel
       const channel = await client.channels.fetch(channelId).catch(error => {
@@ -57,7 +55,6 @@ export default async (client) => {
       
       // Get server data
       const result = await serverDataManager.getServerData(config);
-      logger.info(`PlayerCount: Server data fetched, isOnline=${result?.isOnline}`);
       
       // Determine the status name based on server status
       let statusName;
@@ -72,16 +69,11 @@ export default async (client) => {
       
       // Only update if the name has changed
       if (channel.name !== statusName) {
-        logger.info(`PlayerCount: Updating channel name to "${statusName}"`);
         try {
           await channel.setName(statusName);
-          logger.info(`PlayerCount: Channel name updated to "${statusName}"`);
-          logger.debug(`PlayerCount: Channel ID ${channel.id}, Guild ID ${channel.guild.id}`);
         } catch (editError) {
           logger.error(`PlayerCount: Error updating channel name`, editError);
         }
-      } else {
-        logger.info('PlayerCount: Channel name unchanged');
       }
     } catch (fetchError) {
       logger.error(`PlayerCount: Error fetching channel`, fetchError);
@@ -92,7 +84,9 @@ export default async (client) => {
     // Main function to update player count channel
     async function updatePlayerCount() {
       try {
-        await playerCountUpdate(config.playerCountCH.channelId);
+        // Use the channel ID from config or from data.json
+        const channelIdToUse = config.playerCountCH.channelId;
+        await playerCountUpdate(channelIdToUse);
       } catch (error) {
         logger.error(`PlayerCount: Error updating channel`, error);
       }
@@ -100,16 +94,8 @@ export default async (client) => {
     
     // Check if player count channel feature is enabled
     if (!config.playerCountCH || !config.playerCountCH.enabled) {
-      logger.debug('PlayerCount: Feature not enabled in config');
       return;
     }
-    
-    // Log configuration
-    logger.info(`Starting playerCountCH with config: ${JSON.stringify({
-      enabled: config.playerCountCH.enabled,
-      channelId: config.playerCountCH.channelId,
-      updateInterval: config.playerCountCH.updateInterval
-    })}`);
     
     // Initialize data.json if it doesn't exist
     let dataIDS = {};
@@ -117,11 +103,28 @@ export default async (client) => {
       // Check if data.json exists
       try {
         const fileContent = await fsPromises.readFile(dataPath, 'utf8');
-        try {
-          dataIDS = JSON.parse(fileContent);
-        } catch (parseError) {
-          logger.warn('Invalid data.json content, initializing new object');
+        
+        // Check if the file content is valid JSON
+        if (!fileContent || fileContent.trim() === '') {
+          logger.warn('Empty data.json file, initializing new object');
           dataIDS = {};
+        } else {
+          try {
+            dataIDS = JSON.parse(fileContent);
+          } catch (parseError) {
+            logger.warn(`Invalid JSON in data.json: ${parseError.message}`);
+            
+            // Create a backup of the corrupted file
+            const backupPath = `${dataPath}.corrupted-${Date.now()}`;
+            try {
+              await fsPromises.writeFile(backupPath, fileContent);
+            } catch (backupError) {
+              logger.error(`Failed to create backup of corrupted data.json: ${backupError.message}`);
+            }
+            
+            // Initialize with new object
+            dataIDS = {};
+          }
         }
       } catch (err) {
         // File doesn't exist or can't be read
@@ -129,22 +132,25 @@ export default async (client) => {
         dataIDS = {};
       }
       
-      // Initialize playerCountStats if it doesn't exist
-      if (!dataIDS.playerCountStats) {
-        logger.info('playerCountStats not found in data.json, initializing');
-        dataIDS.playerCountStats = { lastUpdate: Date.now() };
+      // Initialize playerCountStats if it doesn't exist or is not an object
+      if (!dataIDS.playerCountStats || typeof dataIDS.playerCountStats !== 'object') {
+        dataIDS.playerCountStats = { 
+          channelId: config.playerCountCH.channelId,
+          lastUpdate: Date.now() 
+        };
       }
       
       // Initialize autoChangeStatus if it doesn't exist
       if (!dataIDS.autoChangeStatus) {
-        logger.info('autoChangeStatus not found in data.json, initializing empty array');
         dataIDS.autoChangeStatus = [];
       }
       
-      logger.info(`Current data.json content: ${JSON.stringify(dataIDS)}`);
-      
       // Write updated data back to file
-      await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2));
+      try {
+        await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2));
+      } catch (writeError) {
+        logger.error(`Failed to write to data.json: ${writeError.message}`);
+      }
       
       // Update player count immediately
       await updatePlayerCount();
@@ -155,10 +161,49 @@ export default async (client) => {
           await updatePlayerCount();
           
           // Update last update time in data.json
-          dataIDS.playerCountStats.lastUpdate = Date.now();
-          await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2));
-          
-          logger.debug(`Player count updated at ${new Date().toISOString()}`);
+          try {
+            // Read the current data.json to avoid overwriting other changes
+            const currentFileContent = await fsPromises.readFile(dataPath, 'utf8');
+            let currentData = {};
+            
+            try {
+              currentData = JSON.parse(currentFileContent);
+            } catch (parseError) {
+              logger.error(`Error parsing data.json for update: ${parseError.message}`);
+              // Create a backup of the corrupted file
+              const backupPath = `${dataPath}.corrupted-${Date.now()}`;
+              await fsPromises.writeFile(backupPath, currentFileContent);
+              
+              // Use our in-memory data as fallback
+              currentData = dataIDS;
+            }
+            
+            // Make sure playerCountStats exists and is an object
+            if (!currentData.playerCountStats || typeof currentData.playerCountStats !== 'object') {
+              currentData.playerCountStats = { 
+                channelId: config.playerCountCH.channelId,
+                lastUpdate: Date.now() 
+              };
+            } else {
+              // Update lastUpdate time
+              currentData.playerCountStats.lastUpdate = Date.now();
+            }
+            
+            // Update our in-memory copy
+            dataIDS = currentData;
+            
+            // Write back to file
+            await fsPromises.writeFile(dataPath, JSON.stringify(currentData, null, 2));
+          } catch (fileError) {
+            logger.error(`Error updating data.json: ${fileError.message}`);
+            // Try to write our in-memory data as fallback
+            try {
+              dataIDS.playerCountStats.lastUpdate = Date.now();
+              await fsPromises.writeFile(dataPath, JSON.stringify(dataIDS, null, 2));
+            } catch (recoveryError) {
+              logger.error(`Failed to recover data.json: ${recoveryError.message}`);
+            }
+          }
         } catch (error) {
           logger.error(`Error in player count update interval: ${error.message}`, error);
         }

@@ -6,10 +6,10 @@ import { LogLevel } from './logger.js';
 export const loggerConfig = {
   // Default log level based on environment
   defaultLevels: {
-    development: LogLevel.TRACE,
-    test: LogLevel.DEBUG,
-    production: LogLevel.INFO,
-    docker: LogLevel.INFO
+    development: LogLevel.WARN,
+    test: LogLevel.WARN,
+    production: LogLevel.WARN,
+    docker: LogLevel.WARN
   },
   
   // Whether to use colors in console output
@@ -20,7 +20,16 @@ export const loggerConfig = {
   
   // Configure which modules should be logged at which levels
   // This allows for more granular control over logging
-  modules: {}
+  modules: {
+    // Critical modules - only show important data retrieval and errors
+    'serverDataManager': LogLevel.WARN,
+    'PlayerCount': LogLevel.ERROR,
+    'StatusMsg': LogLevel.ERROR,
+    'autoChangeStatus': LogLevel.ERROR,
+    'AutoChangeStatus': LogLevel.ERROR,
+    'BotStatus': LogLevel.ERROR,
+    'playerCountCH': LogLevel.ERROR
+  }
 };
 
 /**
@@ -33,7 +42,7 @@ export function configureLogger(appConfig) {
   const env = process.env.NODE_ENV || 'development';
   
   // Set log level based on environment
-  const level = loggerConfig.defaultLevels[env] || LogLevel.INFO;
+  const level = loggerConfig.defaultLevels[env] || LogLevel.WARN;
   
   // Set timezone if specified
   if (appConfig?.settings?.logging?.timezone) {

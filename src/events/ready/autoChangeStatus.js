@@ -15,7 +15,6 @@ const dataJsonPath = fileURLToPath(dataJsonUrl);
 export default async (client) => {
   // Check if autoChangeStatus is enabled in config
   if (!config.autoChangeStatus || !config.autoChangeStatus.enabled) {
-    logger.debug('AutoChangeStatus: Feature not enabled in config');
     return;
   }
 
@@ -27,9 +26,7 @@ export default async (client) => {
     }
 
     const guild = client.guilds.cache.get(config.autoChangeStatus.guildID);
-    if (guild) {
-      logger.info(`AutoChangeStatus: Guild '${chalk.cyan(guild.name)}' found`);
-    } else {
+    if (!guild) {
       logger.error(`AutoChangeStatus: Guild with ID ${chalk.keyword('orange')(config.autoChangeStatus.guildID)} not found`);
       return;
     }
@@ -40,14 +37,11 @@ export default async (client) => {
 
   // Main function to update auto change status
   const autoChangeStatus = async () => {
-    logger.debug('AutoChangeStatus: Starting update process');
-
     // Check if data.json exists and read it
     let dataRead = { autoChangeStatus: [] };
     try {
       const fileContent = await fs.readFile(dataJsonPath, 'utf8');
       dataRead = JSON.parse(fileContent);
-      logger.info(`Read data.json, found ${dataRead.autoChangeStatus?.length || 0} status records`);
     } catch (readError) {
       logger.warn(`Error reading data.json: ${readError.message}`);
       
@@ -61,7 +55,6 @@ export default async (client) => {
         // Write the new data to data.json
         await fs.writeFile(dataJsonPath, JSON.stringify(newData, null, 2));
         dataRead = newData;
-        logger.info('Recreated data.json file');
       } catch (writeError) {
         logger.error(`Failed to recreate data.json: ${writeError.message}`);
         return;
@@ -71,21 +64,15 @@ export default async (client) => {
     try {
       // Process autoChangeStatus records
       if (!dataRead.autoChangeStatus || !Array.isArray(dataRead.autoChangeStatus) || dataRead.autoChangeStatus.length === 0) {
-        logger.warn('No autoChangeStatus records found, skipping update');
         return;
       }
       
       // Filter out invalid records and process valid ones
       const validRecords = [];
-      const updatedStatusRecords = [];
       
       // Process each record
-      logger.info(`Processing ${dataRead.autoChangeStatus.length} status records`);
-      
       for (const record of dataRead.autoChangeStatus) {
         try {
-          logger.info(`Processing record for channel ${record.channelId}, message ${record.messageId}`);
-          
           // Fetch the channel
           const channel = await client.channels.fetch(record.channelId).catch(error => {
             logger.error(`Failed to fetch channel ${record.channelId}: ${error.message}`);
@@ -93,8 +80,6 @@ export default async (client) => {
           });
           
           if (!channel) {
-            logger.warn(`Channel with ID ${record.channelId} not found, removing record from data`);
-            logger.debug(`Channel with ID ${record.channelId} not found. Removing record from data.`);
             continue;
           }
           
@@ -105,14 +90,10 @@ export default async (client) => {
           });
           
           if (!message) {
-            logger.warn(`Message with ID ${record.messageId} not found, removing record from data`);
-            logger.debug(`Message with ID ${record.messageId} not found. Removing record from data.`);
             continue;
           }
           
           // Update the status message
-          logger.info(`Updating status message for ${record.ip}:${record.port}`);
-          
           await statusMessageEdit(
             record.ip,
             record.port,
@@ -125,7 +106,6 @@ export default async (client) => {
           
           // Add to valid records
           validRecords.push(record);
-          logger.info(`Status message updated for ${record.ip}:${record.port}`);
         } catch (error) {
           logger.error(`Error processing record: ${error.message}`, error);
         }
@@ -134,14 +114,12 @@ export default async (client) => {
       // Update data.json with valid records
       try {
         if (validRecords.length === 0) {
-          logger.warn('No valid records found, clearing autoChangeStatus array');
           dataRead.autoChangeStatus = [];
         } else {
           dataRead.autoChangeStatus = validRecords;
         }
         
         await fs.writeFile(dataJsonPath, JSON.stringify(dataRead, null, 2));
-        logger.info(`Updated data.json with ${validRecords.length} valid records`);
       } catch (error) {
         logger.error(`Error writing to data.json: ${error.message}`, error);
       }
@@ -156,19 +134,13 @@ export default async (client) => {
   // Schedule autoChangeStatus to run at regular intervals
   const scheduleAutoChangeStatus = async () => {
     if (isRunning) {
-      logger.warn('AutoChangeStatus: Already running, skipping update');
       return;
     }
     
     try {
       isRunning = true;
-      logger.debug("AutoChangeStatus: Update started");
-      logger.debug("AutoChangeStatus: Process starting");
       await autoChangeStatus();
-      logger.debug("AutoChangeStatus: Process completed");
       isRunning = false;
-      logger.debug("AutoChangeStatus: Update finished");
-      logger.debug("AutoChangeStatus: Scheduling next update");
     } catch (error) {
       isRunning = false;
       logger.error(`AutoChangeStatus: Error in scheduler`, error);
@@ -176,58 +148,84 @@ export default async (client) => {
   };
   
   // Check if data.json exists and has autoChangeStatus array
-  const checkDataJson = async () => {
-    logger.debug('AutoChangeStatus: Checking data.json for records');
-    
+  async function checkDataJson() {
     try {
-      const fileContent = await fs.readFile(dataJsonPath, 'utf8');
-      logger.info(`Read data.json: ${fileContent}`);
+      let data = {};
+      let fileContent = '';
       
-      let data = JSON.parse(fileContent);
-      
-      // If autoChangeStatus array doesn't exist, create it
-      if (!data.autoChangeStatus) {
-        data.autoChangeStatus = [];
-        await fs.writeFile(dataJsonPath, JSON.stringify(data, null, 2));
-        logger.info('Added autoChangeStatus array to data.json');
-      }
-    } catch (readError) {
-      logger.warn(`Error reading data.json: ${readError.message}`);
-      
-      // Try to recreate data.json if it doesn't exist
+      // Try to read data.json
       try {
-        // Create a new data object with empty autoChangeStatus array
-        const newData = {
-          autoChangeStatus: []
-        };
+        fileContent = await fs.readFile(dataJsonPath, 'utf8');
         
-        // Write the new data to data.json
-        await fs.writeFile(dataJsonPath, JSON.stringify(newData, null, 2));
-        logger.info('Recreated data.json file');
-      } catch (writeError) {
-        logger.error(`Failed to recreate data.json: ${writeError.message}`, writeError);
+        // Check for empty file
+        if (!fileContent || fileContent.trim() === '') {
+          data = { autoChangeStatus: [] };
+          await fs.writeFile(dataJsonPath, JSON.stringify(data, null, 2));
+        } else {
+          // Try to parse JSON
+          try {
+            data = JSON.parse(fileContent);
+            
+            // Check if autoChangeStatus exists in data
+            if (!data.autoChangeStatus) {
+              data.autoChangeStatus = [];
+              await fs.writeFile(dataJsonPath, JSON.stringify(data, null, 2));
+            }
+          } catch (parseError) {
+            logger.error(`Failed to parse data.json: ${parseError.message}`);
+            
+            // Create a backup of corrupted file
+            const backupPath = `${dataJsonPath}.corrupted-${Date.now()}`;
+            try {
+              await fs.writeFile(backupPath, fileContent);
+            } catch (backupError) {
+              logger.error(`Failed to create backup of corrupted data.json: ${backupError.message}`);
+            }
+            
+            // Create a new data.json with empty autoChangeStatus array
+            const newData = { autoChangeStatus: [] };
+            await fs.writeFile(dataJsonPath, JSON.stringify(newData, null, 2));
+            data = newData;
+          }
+        }
+      } catch (readError) {
+        logger.warn(`Error reading data.json: ${readError.message}`);
+        
+        // Create data.json if it doesn't exist
+        try {
+          data = { autoChangeStatus: [] };
+          await fs.writeFile(dataJsonPath, JSON.stringify(data, null, 2));
+        } catch (writeError) {
+          logger.error(`Failed to recreate data.json: ${writeError.message}`, writeError);
+          return;
+        }
       }
+      
+      try {
+        // Re-read data.json to ensure it's properly structured
+        const reReadContent = await fs.readFile(dataJsonPath, 'utf8');
+        const parsedData = JSON.parse(reReadContent);
+        return parsedData;
+      } catch (error) {
+        logger.error(`Error re-reading data.json: ${error.message}`);
+        return data;
+      }
+    } catch (error) {
+      logger.error(`Error checking data.json: ${error.message}`, error);
+      return { autoChangeStatus: [] };
     }
+  }
+  
+  try {
+    // Initialize by checking data.json
+    await checkDataJson();
     
-    // Parse data.json again to get the latest data
-    const fileContent = await fs.readFile(dataJsonPath, 'utf8');
-    const data = JSON.parse(fileContent);
-    logger.info(`Parsed data.json, autoChangeStatus length: ${data.autoChangeStatus?.length || 0}`);
-    
-    // Run autoChangeStatus immediately and then schedule it to run at regular intervals
+    // Run immediately and then on schedule
     await scheduleAutoChangeStatus();
-    logger.info('Starting autoChangeStatus update loop');
     
     // Set up interval for regular updates
     setInterval(scheduleAutoChangeStatus, config.autoChangeStatus.updateInterval * 1000);
-    
-    // If no autoChangeStatus records found, log a message
-    if (!data.autoChangeStatus || data.autoChangeStatus.length === 0) {
-      logger.info(`To set up server status, use ${chalk.cyan('"/setstatus"')} command in the desired channel`);
-      logger.debug('No autoChangeStatus records found, please use /setstatus command to set up status messages');
-    }
-  };
-  
-  // Check data.json for existing autoChangeStatus records
-  await checkDataJson();
+  } catch (error) {
+    logger.error(`Failed to initialize autoChangeStatus: ${error.message}`, error);
+  }
 };
