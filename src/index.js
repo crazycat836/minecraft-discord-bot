@@ -12,10 +12,11 @@ import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import serverDataManager from './services/serverDataManager.js';
 
-// Import the new logger system
+// Import the logger and translation systems
 import logger, { LogLevel } from './utils/logger.js';
 import { configureLogger } from './utils/loggerConfig.js';
 import loggerMigration from './utils/loggerMigration.js';
+import translationManager from './utils/translationManager.js';
 
 // Configure the logger based on the application config
 configureLogger(config);
@@ -68,20 +69,13 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // ---------------------
-// Translation File Loading (Synchronous for Startup)
+// Translation Constants
 // ---------------------
 
-const languageEmbedOutput = config.settings.language.embeds || config.settings.language.main;
-const embedFileContent = fs.readFileSync(`./translation/${languageEmbedOutput}/embeds.json5`, 'utf8');
-const embedTranslation = json5.parse(embedFileContent);
-
-const languageConsoleOutput = config.settings.language.consoleLog || config.settings.language.main;
-const consoleLogFileContent = fs.readFileSync(`./translation/${languageConsoleOutput}/console-log.json5`, 'utf8');
-const consoleLogTranslation = json5.parse(consoleLogFileContent);
-
-const cmdSlashLanguageOutput = config.settings.language.slashCmds || config.settings.language.main;
-const cmdSlashContents = fs.readFileSync(`./translation/${cmdSlashLanguageOutput}/slash-cmds.json5`, 'utf8');
-const cmdSlashTranslation = json5.parse(cmdSlashContents);
+// Get translations using the manager
+const embedTranslation = translationManager.getTranslation('embeds');
+const consoleLogTranslation = translationManager.getTranslation('console-log');
+const cmdSlashTranslation = translationManager.getTranslation('slash-cmds');
 
 // ---------------------
 // Configuration Checks

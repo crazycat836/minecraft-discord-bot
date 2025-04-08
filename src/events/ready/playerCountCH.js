@@ -5,36 +5,10 @@ import fs from 'fs';
 import json5 from 'json5';
 import path from 'path';
 import logger from '../../utils/logger.js';
+import translationManager from '../../utils/translationManager.js';
 
 // Construct the absolute path for the data.json file
 const dataPath = path.join(process.cwd(), 'src', 'data.json');
-
-// Load player count translations
-const loadPlayerCountTranslations = () => {
-  try {
-    const languageMain = config.settings.language.main || 'en';
-    const playerCountFileContent = fs.readFileSync(`./translation/${languageMain}/bot-status.json5`, 'utf8');
-    return json5.parse(playerCountFileContent);
-  } catch (error) {
-    logger.error('Failed to load player count translations, using English as fallback');
-    try {
-      const playerCountFileContent = fs.readFileSync('./translation/en/bot-status.json5', 'utf8');
-      return json5.parse(playerCountFileContent);
-    } catch (fallbackError) {
-      logger.error('Failed to load fallback translations', fallbackError);
-      // Return default values if even fallback fails
-      return {
-        playerCount: {
-          online: '🟢 {playeronline}/{playermax} active players',
-          offline: '⚫ Server offline'
-        }
-      };
-    }
-  }
-};
-
-// Load translations
-const playerCountTranslation = loadPlayerCountTranslations();
 
 export default async (client) => {
   // Function to update player count channel
@@ -60,11 +34,12 @@ export default async (client) => {
       let statusName;
       if (result && result.isOnline) {
         const { data } = result;
-        statusName = playerCountTranslation.playerCount.online
-          .replace(/{playeronline}/g, data.players.online)
-          .replace(/{playermax}/g, data.players.max);
+        statusName = translationManager.getText('bot-status', 'playerCount.online', {
+          playeronline: data.players.online,
+          playermax: data.players.max
+        });
       } else {
-        statusName = playerCountTranslation.playerCount.offline;
+        statusName = translationManager.getText('bot-status', 'playerCount.offline');
       }
       
       // Only update if the name has changed
