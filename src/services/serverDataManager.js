@@ -7,6 +7,9 @@ import logger from '../utils/logger.js';
  */
 class ServerDataManager {
   constructor() {
+    // Initialize module logger
+    this.logger = logger.getModuleLogger('ServerDataManager');
+    
     // Current ongoing request
     this.pendingRequest = null;
     
@@ -20,7 +23,10 @@ class ServerDataManager {
     // Request counter for debugging
     this.requestCount = 0;
     
-    logger.debug('ServerDataManager: Initialized');
+    // Current request key
+    this.currentRequestKey = null;
+    
+    this.logger.debug('Initialized');
   }
   
   /**
@@ -29,24 +35,31 @@ class ServerDataManager {
    * @returns {Promise<Object>} - Server data
    */
   async getServerData(config) {
-    // If there's already a request in progress, wait for it to complete
-    if (this.pendingRequest) {
-      logger.debug(`ServerDataManager: Reusing existing request #${this.requestCount}`);
+    // Generate a unique key for this request
+    const requestKey = `${config.mcserver.ip}:${config.mcserver.port}:${config.mcserver.type}`;
+    
+    // If there's already a request in progress for this exact server, wait for it to complete
+    if (this.pendingRequest && this.currentRequestKey === requestKey) {
+      this.logger.debug(`Reusing existing request #${this.requestCount} for ${requestKey}`);
       return this.pendingRequest;
     }
     
-    logger.debug(`ServerDataManager: Starting new request #${this.requestCount + 1} for ${config.mcserver.ip}:${config.mcserver.port}`);
+    this.logger.debug(`Starting new request #${this.requestCount + 1} for ${config.mcserver.ip}:${config.mcserver.port}`);
+    
+    // Save the current request key
+    this.currentRequestKey = requestKey;
     
     // Create new request
     this.pendingRequest = this._fetchServerData(config);
     
     try {
       const result = await this.pendingRequest;
-      logger.debug(`ServerDataManager: Request #${this.requestCount} completed, server ${result.isOnline ? 'online' : 'offline'}`);
+      this.logger.debug(`Request #${this.requestCount} completed, server ${result.isOnline ? 'online' : 'offline'}`);
       return result;
     } finally {
       // Clear pendingRequest after request completes
       this.pendingRequest = null;
+      this.currentRequestKey = null;
     }
   }
   
@@ -57,7 +70,7 @@ class ServerDataManager {
    */
   async _fetchServerData(config) {
     this.requestCount++;
-    logger.debug(`ServerDataManager: Fetching data for ${config.mcserver.ip}:${config.mcserver.port} (Request #${this.requestCount})`);
+    this.logger.debug(`Fetching data for ${config.mcserver.ip}:${config.mcserver.port} (Request #${this.requestCount})`);
     
     let retries = 0;
     
@@ -75,9 +88,9 @@ class ServerDataManager {
         // Prepare player list data
         const playerList = isOnline && data.players ? data.players : { online: 0, max: 0, list: [] };
         
-        logger.debug(`ServerDataManager: Server ${config.mcserver.ip} status: ${isOnline ? 'Online' : 'Offline'}, Players: ${playerList.online}/${playerList.max}`);
+        this.logger.debug(`Server ${config.mcserver.ip} status: ${isOnline ? 'Online' : 'Offline'}, Players: ${playerList.online}/${playerList.max}`);
         if (isOnline && playerList.list && playerList.list.length > 0) {
-          logger.debug(`ServerDataManager: Active players: ${playerList.list.map(p => p.name_clean || p.name || p).join(', ')}`);
+          this.logger.debug(`Active players: ${playerList.list.map(p => p.name_clean || p.name || p).join(', ')}`);
         }
         
         // Notify subscribers
@@ -97,14 +110,13 @@ class ServerDataManager {
           const delay = this.baseDelay * Math.pow(2, retries - 1);
           
           // Log rate limit
-          logger.warn(`Rate limited, retrying in ${delay}ms (attempt ${retries}/${this.maxRetries})`);
+          this.logger.warn(`Rate limited, retrying in ${delay}ms (attempt ${retries}/${this.maxRetries})`);
           
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
           // Log other errors with full details
-          logger.error(`Failed to fetch server data: ${error.message}`);
-          logger.debug(`ServerDataManager: Error details for ${config.mcserver.ip}:${config.mcserver.port}`, error);
+          this.logger.error(`Failed to fetch server data: ${error.message}`, error);
           
           // For non-rate limit errors, return offline status immediately
           const result = { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
@@ -118,7 +130,7 @@ class ServerDataManager {
     }
     
     // If we've exhausted all retries
-    logger.error(`All retries failed for ${config.mcserver.ip}:${config.mcserver.port}, returning offline status`);
+    this.logger.error(`All retries failed for ${config.mcserver.ip}:${config.mcserver.port}, returning offline status`);
     
     const result = { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
     
@@ -135,12 +147,12 @@ class ServerDataManager {
    */
   subscribe(callback) {
     this.subscribers.push(callback);
-    logger.debug(`ServerDataManager: New subscriber added, total: ${this.subscribers.length}`);
+    this.logger.debug(`New subscriber added, total: ${this.subscribers.length}`);
     
     // Return function to unsubscribe
     return () => {
       this.subscribers = this.subscribers.filter(sub => sub !== callback);
-      logger.debug(`ServerDataManager: Subscriber removed, total: ${this.subscribers.length}`);
+      this.logger.debug(`Subscriber removed, total: ${this.subscribers.length}`);
     };
   }
   
@@ -150,12 +162,12 @@ class ServerDataManager {
    */
   _notifySubscribers(data) {
     if (this.subscribers.length > 0) {
-      logger.debug(`ServerDataManager: Notifying ${this.subscribers.length} subscribers of server status change`);
+      this.logger.debug(`Notifying ${this.subscribers.length} subscribers of server status change`);
       this.subscribers.forEach(callback => {
         try {
           callback(data);
         } catch (error) {
-          logger.error('Error in subscriber callback:', error);
+          this.logger.error('Error in subscriber callback:', error);
         }
       });
     }

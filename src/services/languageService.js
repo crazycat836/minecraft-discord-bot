@@ -12,7 +12,7 @@ import logger from '../utils/logger.js';
 class LanguageService {
   constructor() {
     this.languages = i18n.getLanguages();
-    this.currentSettings = i18n.getLanguageSettings();
+    this.currentLanguage = i18n.getLanguageSettings();
   }
 
   /**
@@ -46,19 +46,19 @@ class LanguageService {
   }
 
   /**
-   * Get language settings
-   * @returns {Object} Current language settings
+   * Get current language setting
+   * @returns {string} Current language code
    */
-  getLanguageSettings() {
-    return this.currentSettings;
+  getLanguageSetting() {
+    return this.currentLanguage;
   }
 
   /**
-   * Change language for all namespaces
+   * Change global language setting
    * @param {string} language - Language code to set
    * @returns {boolean} Success status
    */
-  changeGlobalLanguage(language) {
+  changeLanguage(language) {
     if (!this.languages.includes(language)) {
       logger.warn(`Unsupported language: ${language}`);
       return false;
@@ -67,48 +67,13 @@ class LanguageService {
     // Change the language in i18next
     const result = i18n.changeLanguage(language);
     if (result) {
-      // Update settings object
-      this.currentSettings = {
-        main: language,
-        embeds: language,
-        autoReply: language,
-        consoleLog: language,
-        slashCmds: language
-      };
+      // Update settings
+      this.currentLanguage = language;
 
       // Update config
       this._updateConfigFile(language);
 
-      logger.info(`Changed global language to ${language}`);
-      return true;
-    }
-    
-    return false;
-  }
-
-  /**
-   * Change language for a specific namespace
-   * @param {string} namespace - Namespace to change
-   * @param {string} language - Language code to set
-   * @returns {boolean} Success status
-   */
-  changeNamespaceLanguage(namespace, language) {
-    if (!this.languages.includes(language)) {
-      logger.warn(`Unsupported language: ${language}`);
-      return false;
-    }
-
-    // Change language in i18next (no namespace-specific change in the unified system, 
-    // we just track the config settings for when the app restarts)
-    const result = i18n.changeLanguage(language);
-    if (result) {
-      // Update settings object
-      this.currentSettings[this._mapNamespaceToSetting(namespace)] = language;
-      
-      // Update config file
-      this._updateConfigFile(language, namespace);
-      
-      logger.info(`Changed language for ${namespace} to ${language}`);
+      logger.info(`Changed language to ${language}`);
       return true;
     }
     
@@ -121,58 +86,27 @@ class LanguageService {
   reloadTranslations() {
     i18n.reloadTranslations();
     // Refresh current settings
-    this.currentSettings = i18n.getLanguageSettings();
+    this.currentLanguage = i18n.getLanguageSettings();
     logger.info(`Translation system reloaded`);
   }
 
   /**
-   * Map namespace to config setting key
-   * @private
-   * @param {string} namespace - Translation namespace
-   * @returns {string} Config setting key
-   */
-  _mapNamespaceToSetting(namespace) {
-    switch (namespace) {
-      case 'console-log': return 'consoleLog';
-      case 'slash-cmds': return 'slashCmds';
-      case 'auto-reply': return 'autoReply';
-      case 'embeds': return 'embeds';
-      case 'bot-status': return 'main';
-      default: return 'main';
-    }
-  }
-
-  /**
-   * Update config file with new language settings
+   * Update config file with new language setting
    * @private
    * @param {string} language - Language code
-   * @param {string|null} namespace - Optional namespace to update specific setting
    */
-  _updateConfigFile(language, namespace = null) {
+  _updateConfigFile(language) {
     try {
       const configPath = path.join(process.cwd(), 'config.js');
       let configContent = fs.readFileSync(configPath, 'utf8');
       
-      if (namespace) {
-        // Update specific namespace
-        const settingKey = this._mapNamespaceToSetting(namespace);
-        const regex = new RegExp(`(language:\\s*{[\\s\\S]*?${settingKey}:\\s*['"])([^'"]*?)(['"][\\s\\S]*?})`);
-        configContent = configContent.replace(regex, `$1${language}$3`);
-      } else {
-        // Update all language settings
-        const regex = new RegExp(`(language:\\s*{[\\s\\S]*?main:\\s*['"])([^'"]*?)(['"][\\s\\S]*?})`);
-        configContent = configContent.replace(regex, `$1${language}$3`);
-        
-        // Update each specific setting
-        ['embeds', 'autoReply', 'consoleLog', 'slashCmds'].forEach(setting => {
-          const settingRegex = new RegExp(`(${setting}:\\s*['"])([^'"]*?)(['"])`);
-          configContent = configContent.replace(settingRegex, `$1${language}$3`);
-        });
-      }
+      // Update language setting (assuming it's now a string, not an object)
+      const regex = new RegExp(`(language:\\s*['"])([^'"]*?)(['"])`);
+      configContent = configContent.replace(regex, `$1${language}$3`);
       
       // Write the updated config back
       fs.writeFileSync(configPath, configContent, 'utf8');
-      logger.debug(`Updated config file with new language settings`);
+      logger.debug(`Updated config file with new language setting: ${language}`);
     } catch (error) {
       logger.error(`Failed to update config file: ${error.message}`);
     }

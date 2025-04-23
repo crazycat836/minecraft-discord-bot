@@ -34,8 +34,13 @@ pids
 *.swp
 *.swo 
 
+# Cursor-specific files
+.cursor/
+cursor.json
+
 # Private configuration files
 release_notes.md
+config.js  # 包含敏感信息的配置文件
 
 # Runtime data files
 src/data.json 

@@ -40,12 +40,8 @@ const ensureSupportedLanguage = (lang) => {
   return 'en';
 };
 
-// Get language settings from config with validation
-let mainLanguage = ensureSupportedLanguage(config.settings.language.main);
-let embedsLanguage = ensureSupportedLanguage(config.settings.language.embeds) || mainLanguage;
-let autoReplyLanguage = ensureSupportedLanguage(config.settings.language.autoReply) || mainLanguage;
-let consoleLogLanguage = ensureSupportedLanguage(config.settings.language.consoleLog) || mainLanguage;
-let slashCmdsLanguage = ensureSupportedLanguage(config.settings.language.slashCmds) || mainLanguage;
+// Get language setting from config with validation
+let mainLanguage = ensureSupportedLanguage(config.settings.language);
 
 // Resources object to store translations
 const resources = {};
@@ -102,45 +98,24 @@ i18next.init({
   saveMissingTo: 'en',
   missingKeyHandler: () => {},
   // Custom language detection
-  detection: {
-    order: ['custom'],
-    lookupFromPathIndex: 0,
-    caches: []
-  }
+  order: ['custom'],
+  lookupFromPathIndex: 0,
+  caches: []
 });
 
 // Add language detector 
 i18next.services.languageDetector = customLanguageDetector;
-
-// Helper function to get the appropriate language for a namespace
-const getLanguageForNamespace = (namespace) => {
-  switch (namespace) {
-    case 'embeds':
-      return embedsLanguage;
-    case 'auto-reply':
-      return autoReplyLanguage;
-    case 'console-log':
-      return consoleLogLanguage;
-    case 'slash-cmds':
-      return slashCmdsLanguage;
-    case 'bot-status':
-      return mainLanguage;
-    default:
-      return mainLanguage;
-  }
-};
 
 /**
  * Get translation using type (namespace) and path
  * @param {string} type - Translation namespace (console-log, embeds, slash-cmds, auto-reply, bot-status)
  * @param {string} path - Translation key path using dot notation
  * @param {Object} replacements - Variables to replace in the translated string
- * @param {string|null} language - Optional language code, or null to use configured language for the type
+ * @param {string|null} language - Optional language code, or null to use configured language
  * @returns {string} Translated string
  */
 export const getText = (type, path, replacements = {}, language = null) => {
-  const rawLang = language || getLanguageForNamespace(type);
-  const langToUse = ensureSupportedLanguage(rawLang);
+  const langToUse = ensureSupportedLanguage(language || mainLanguage);
   return i18next.t(`${type}.${path}`, { lng: langToUse, ...replacements });
 };
 
@@ -151,8 +126,7 @@ export const getText = (type, path, replacements = {}, language = null) => {
  * @returns {Object} Translation object
  */
 export const getTranslation = (type, language = null) => {
-  const rawLang = language || getLanguageForNamespace(type);
-  const langToUse = ensureSupportedLanguage(rawLang);
+  const langToUse = ensureSupportedLanguage(language || mainLanguage);
   const resourceBundle = i18next.getResourceBundle(langToUse, 'translation');
   return resourceBundle && resourceBundle[type] ? resourceBundle[type] : {};
 };
@@ -170,44 +144,17 @@ export const getLanguages = () => {
  * @returns {Object} Language settings object
  */
 export const getLanguageSettings = () => {
-  return {
-    main: mainLanguage,
-    embeds: embedsLanguage,
-    autoReply: autoReplyLanguage,
-    consoleLog: consoleLogLanguage,
-    slashCmds: slashCmdsLanguage
-  };
+  return mainLanguage;
 };
 
 /**
- * Change language for a specific namespace
- * @param {string} namespace - Translation namespace to change language for
+ * Change language globally
  * @param {string} language - Language code to set
  * @returns {boolean} Success status
  */
-export const changeLanguage = (namespace, language) => {
+export const changeLanguage = (language) => {
   const langToUse = ensureSupportedLanguage(language);
-  
-  // Update the appropriate language variable
-  switch (namespace) {
-    case 'embeds':
-      embedsLanguage = langToUse;
-      break;
-    case 'auto-reply':
-      autoReplyLanguage = langToUse;
-      break;
-    case 'console-log':
-      consoleLogLanguage = langToUse;
-      break;
-    case 'slash-cmds':
-      slashCmdsLanguage = langToUse;
-      break;
-    case 'bot-status':
-    default:
-      mainLanguage = langToUse;
-      break;
-  }
-
+  mainLanguage = langToUse;
   i18next.changeLanguage(langToUse);
   return true;
 };

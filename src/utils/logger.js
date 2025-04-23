@@ -1,4 +1,8 @@
 import chalk from 'chalk';
+import fs from 'fs';
+import path from 'path';
+import { promises as fsPromises } from 'fs';
+import os from 'os';
 
 // Define log levels
 export const LogLevel = {
@@ -6,7 +10,7 @@ export const LogLevel = {
   ERROR: 1,   // Errors that prevent functionality from working
   WARN: 2,    // Warnings about potential issues
   INFO: 3,    // Important operational information
-  DEBUG: 4,   // Detailed information for debugging
+  DEBUG: 4,    // Detailed information for debugging
   TRACE: 5    // Very detailed tracing information
 };
 
@@ -30,6 +34,13 @@ const LOG_LABELS = {
   [LogLevel.TRACE]: 'TRACE'
 };
 
+// Log file configuration
+const LOG_DIR = path.join(process.cwd(), 'logs');
+const ERROR_LOG_FILE = path.join(LOG_DIR, 'error.log');
+const APP_LOG_FILE = path.join(LOG_DIR, 'app.log');
+const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_LOG_FILES = 5; // Number of rotated log files to keep
+
 /**
  * Logger class for consistent logging across the application
  */
@@ -41,8 +52,21 @@ export class Logger {
       useColors: true,
       showTimestamp: true,
       modulePrefix: null,
+      enableFileLogging: false,
+      logDirectory: LOG_DIR,
+      errorLogFile: ERROR_LOG_FILE,
+      appLogFile: APP_LOG_FILE,
+      modules: {},
       ...options
     };
+    
+    // Module context tracking
+    this.moduleContext = new Map();
+    
+    // Initialize file logging if enabled
+    if (this.config.enableFileLogging) {
+      this.initializeFileLogging();
+    }
   }
   
   /**
@@ -52,6 +76,26 @@ export class Logger {
   configure(config) {
     if (config) {
       this.config = { ...this.config, ...config };
+      
+      // Re-initialize file logging if configuration changed
+      if (this.config.enableFileLogging) {
+        this.initializeFileLogging();
+      }
+    }
+  }
+  
+  /**
+   * Set up file logging directory and files
+   */
+  async initializeFileLogging() {
+    try {
+      // Ensure log directory exists
+      if (!fs.existsSync(this.config.logDirectory)) {
+        await fsPromises.mkdir(this.config.logDirectory, { recursive: true });
+      }
+    } catch (error) {
+      console.error(`Failed to initialize log directory: ${error.message}`);
+      this.config.enableFileLogging = false;
     }
   }
   
@@ -75,7 +119,7 @@ export class Logger {
   }
   
   /**
-   * Format a log message
+   * Format a log message for console output
    * @param {number} level - The log level
    * @param {string} message - The log message
    * @param {Object} [meta] - Additional metadata to log
@@ -124,6 +168,96 @@ export class Logger {
   }
   
   /**
+   * Format message for file output (no color codes)
+   * @param {number} level - The log level
+   * @param {string} message - The log message
+   * @param {Object} [meta] - Additional metadata
+   * @returns {string} Formatted message for file
+   */
+  formatMessageForFile(level, message, meta = null) {
+    const label = LOG_LABELS[level];
+    const timestamp = this.getTimestamp();
+    
+    // Basic format: timestamp | LEVEL | message
+    let formattedMessage = `${timestamp} | ${label.padEnd(5, ' ')} | ${message}`;
+    
+    // Add metadata if provided
+    if (meta) {
+      if (meta instanceof Error) {
+        formattedMessage += `: ${meta.message}`;
+        if (meta.stack && (level <= LogLevel.ERROR)) {
+          formattedMessage += `\n${meta.stack}`;
+        }
+      } else if (typeof meta === 'object') {
+        try {
+          formattedMessage += ` ${JSON.stringify(meta)}`;
+        } catch (e) {
+          formattedMessage += ` [Object]`;
+        }
+      } else {
+        formattedMessage += ` ${meta}`;
+      }
+    }
+    
+    return formattedMessage;
+  }
+  
+  /**
+   * Log rotation - checks if log file exceeds maximum size and rotates if needed
+   * @param {string} logFile - Path to the log file
+   */
+  async rotateLogIfNeeded(logFile) {
+    try {
+      // Check if file exists
+      if (!fs.existsSync(logFile)) {
+        return;
+      }
+      
+      // Check file size
+      const stats = await fsPromises.stat(logFile);
+      if (stats.size < MAX_LOG_SIZE) {
+        return;
+      }
+      
+      // Rotate log files
+      for (let i = MAX_LOG_FILES - 1; i > 0; i--) {
+        const oldFile = `${logFile}.${i}`;
+        const newFile = `${logFile}.${i + 1}`;
+        
+        if (fs.existsSync(oldFile)) {
+          await fsPromises.rename(oldFile, newFile).catch(() => {});
+        }
+      }
+      
+      // Rename current log file
+      await fsPromises.rename(logFile, `${logFile}.1`).catch(() => {});
+    } catch (error) {
+      console.error(`Log rotation error: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Append message to log file
+   * @param {string} logFile - Path to the log file
+   * @param {string} message - Message to append
+   */
+  async appendToLogFile(logFile, message) {
+    if (!this.config.enableFileLogging) {
+      return;
+    }
+    
+    try {
+      // Rotate log if needed
+      await this.rotateLogIfNeeded(logFile);
+      
+      // Append to log file
+      await fsPromises.appendFile(logFile, message + os.EOL);
+    } catch (error) {
+      console.error(`Failed to write to log file: ${error.message}`);
+    }
+  }
+  
+  /**
    * Set module-specific log level
    * @param {string} moduleName - The name of the module
    * @param {number} level - The log level to set for the module
@@ -150,6 +284,32 @@ export class Logger {
   }
   
   /**
+   * Create a logger instance for a specific module
+   * @param {string} moduleName - The name of the module
+   * @returns {Object} Module-specific logger
+   */
+  getModuleLogger(moduleName) {
+    // Check if we already have a logger for this module
+    if (this.moduleContext.has(moduleName)) {
+      return this.moduleContext.get(moduleName);
+    }
+    
+    // Create a new module logger
+    const moduleLogger = {
+      fatal: (message, meta = null) => this.log(LogLevel.FATAL, message, meta, moduleName),
+      error: (message, meta = null) => this.log(LogLevel.ERROR, message, meta, moduleName),
+      warn: (message, meta = null) => this.log(LogLevel.WARN, message, meta, moduleName),
+      info: (message, meta = null) => this.log(LogLevel.INFO, message, meta, moduleName),
+      debug: (message, meta = null) => this.log(LogLevel.DEBUG, message, meta, moduleName),
+      trace: (message, meta = null) => this.log(LogLevel.TRACE, message, meta, moduleName)
+    };
+    
+    // Store in cache
+    this.moduleContext.set(moduleName, moduleLogger);
+    return moduleLogger;
+  }
+  
+  /**
    * Log a message if the current log level allows it
    * @param {number} level - The log level
    * @param {string} message - The log message
@@ -162,10 +322,45 @@ export class Logger {
     
     // Only log if the level is less than or equal to the effective level
     if (level <= effectiveLevel) {
-      const formattedMessage = this.formatMessage(level, message, meta);
+      // Format module prefix if provided
+      let formattedMessage = '';
+      
+      if (moduleName && !message.startsWith(moduleName)) {
+        formattedMessage = `${moduleName}: ${message}`;
+      } else {
+        formattedMessage = message;
+      }
+      
+      // Format message for console
+      const consoleMessage = this.formatMessage(level, formattedMessage, meta);
       
       // Output to console
-      console.log(formattedMessage);
+      console.log(consoleMessage);
+      
+      // Write to log file if enabled
+      if (this.config.enableFileLogging) {
+        // Plain text format for log files (no colors)
+        const fileMessage = this.formatMessageForFile(level, formattedMessage, meta);
+        
+        // Save to app log
+        this.appendToLogFile(this.config.appLogFile, fileMessage);
+        
+        // Also save errors and fatal messages to error log
+        if (level <= LogLevel.ERROR) {
+          this.appendToLogFile(this.config.errorLogFile, fileMessage);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Enable or disable file logging
+   * @param {boolean} enabled - Whether file logging should be enabled
+   */
+  setFileLogging(enabled) {
+    this.config.enableFileLogging = enabled;
+    if (enabled) {
+      this.initializeFileLogging();
     }
   }
   

@@ -1,59 +1,52 @@
 // config.js
-// Config Documentation: https://nooberpro.gitbook.io/minecraft-discord-bot/installation/config
 // "MC" refers to Minecraft in the comments for convenience.
+// Copy this file to config.js and fill in your values.
 
 export default {
   bot: {
-    token: process.env.DISCORD_BOT_TOKEN || '',
+    token: process.env.DISCORD_BOT_TOKEN || 'YOUR_BOT_TOKEN_HERE', // Use environment variable for token
     presence: {
       enabled: true,
       activity: 'Playing', // Options: Playing, Listening, Watching, Competing.
       status: {
         online: 'online',
-        offline: 'idle',
+        offline: 'dnd',
       },
     },
   },
   mcserver: {
-    ip: process.env.MC_SERVER_IP || '',
-    port: parseInt(process.env.MC_SERVER_PORT) || 25565,
-    type: process.env.MC_SERVER_TYPE || 'java',
-    name: process.env.MC_SERVER_NAME || '',
-    version: process.env.MC_SERVER_VERSION || '',
-    icon: process.env.MC_SERVER_ICON || 'https://i.imgur.com/6Msem8Q.png',
-    site: process.env.MC_SERVER_SITE || '',
+    ip: 'YOUR_MC_SERVER_IP', 
+    port: 25565,
+    type: 'java', // 'java' or 'bedrock'
+    name: 'Your Server Name', 
+    version: "Your Server Version", 
+    icon: 'https://example.com/server-icon.png', // URL to server icon
+    site: '',
   },
   settings: {
-    language: {
-      main: process.env.LANGUAGE_MAIN || '',
-      embeds: process.env.LANGUAGE_EMBEDS || '',
-      autoReply: process.env.LANGUAGE_AUTO_REPLY || '',
-      consoleLog: process.env.LANGUAGE_CONSOLE_LOG || '',
-      slashCmds: process.env.LANGUAGE_SLASH_CMDS || '',
-    },
+    guildID: 'YOUR_DISCORD_SERVER_ID', // Discord server ID (shared setting)
+    language: 'zh-TW', // Traditional Chinese, used for all language settings
     embedsColors: {
       basicCmds: 'Aqua',
       online: 'Green',
       offline: 'Red',
     },
     logging: {
-      timezone: '',
-      inviteLink: process.env.INVITE_LINK_ENABLED === 'true',
+      timezone: 'Asia/Taipei', // Taipei timezone
+      inviteLink: true,
     },
   },
   autoChangeStatus: {
-    enabled: process.env.AUTO_CHANGE_STATUS_ENABLED === 'true',
-    updateInterval: parseInt(process.env.UPDATE_INTERVAL) || 60, // in seconds
-    adminOnly: process.env.ADMIN_ONLY === 'true',
-    playerAvatarEmoji: process.env.PLAYER_AVATAR_EMOJI === 'true',
-    guildID: process.env.DISCORD_GUILD_ID,
-    isOnlineCheck: process.env.IS_ONLINE_CHECK === 'true',
+    enabled: true,
+    updateInterval: 60, // in seconds
+    adminOnly: true,
+    playerAvatarEmoji: true,
+    isOnlineCheck: true,
   },
   playerCountCH: {
-    enabled: process.env.PLAYER_COUNT_ENABLED === 'true',
-    updateInterval: parseInt(process.env.PLAYER_COUNT_UPDATE_INTERVAL) || 60, // in seconds
-    guildID: process.env.DISCORD_GUILD_ID,
-    channelId: process.env.STATS_CHANNEL_ID,
+    enabled: true,
+    updateInterval: 60, // in seconds
+    channelId: 'YOUR_CHANNEL_ID', // Player count channel ID
   },
   autoReply: {
     enabled: false,
@@ -113,4 +106,4 @@ export default {
       alias: ['commands'],
     },
   },
-};
+}; 
