@@ -98,9 +98,11 @@ i18next.init({
   saveMissingTo: 'en',
   missingKeyHandler: () => {},
   // Custom language detection
-  order: ['custom'],
-  lookupFromPathIndex: 0,
-  caches: []
+  detection: {
+    order: ['custom'],
+    lookupFromPathIndex: 0,
+    caches: []
+  }
 });
 
 // Add language detector 

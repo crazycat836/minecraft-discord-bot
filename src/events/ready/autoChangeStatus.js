@@ -23,14 +23,14 @@ export default async (client) => {
 
   // Validate guildID configuration and fetch guild
   try {
-    if (!config.autoChangeStatus.guildID) {
-      logger.warn('AutoChangeStatus: GuildID not set in config file');
+    if (!config.settings || !config.settings.guildID) {
+      logger.warn('AutoChangeStatus: GuildID not set in config.settings');
       return;
     }
 
-    const guild = client.guilds.cache.get(config.autoChangeStatus.guildID);
+    const guild = client.guilds.cache.get(config.settings.guildID);
     if (!guild) {
-      logger.error(`AutoChangeStatus: Guild with ID ${chalk.keyword('orange')(config.autoChangeStatus.guildID)} not found`);
+      logger.error(`AutoChangeStatus: Guild with ID ${chalk.yellow(config.settings.guildID)} not found`);
       return;
     }
     
@@ -85,7 +85,7 @@ export default async (client) => {
       // Process each record
       for (const record of dataRead.autoChangeStatus) {
         try {
-          logger.debug(`AutoChangeStatus: Processing status message for server ${record.ip}:${record.port} in channel ${record.channelId}`);
+          logger.debug(`AutoChangeStatus: Processing status message for server ${record.ip}:${record.port} (${record.type || 'java'}) in channel ${record.channelId}`);
           
           // Fetch the channel
           const channel = await client.channels.fetch(record.channelId).catch(error => {
@@ -111,6 +111,10 @@ export default async (client) => {
           
           logger.debug(`AutoChangeStatus: Updating status for server ${record.ip}:${record.port} (${record.type || 'java'})`);
           
+          // Clear serverDataManager's pending requests to force a fresh check
+          serverDataManager.pendingRequest = null;
+          serverDataManager.currentRequestKey = null;
+          
           // Update the status message
           await statusMessageEdit(
             record.ip,
@@ -118,7 +122,7 @@ export default async (client) => {
             record.type || 'java',
             record.name || record.ip,
             message,
-            config.autoChangeStatus.isPlayerAvatarEmoji,
+            record.isPlayerAvatarEmoji,
             client
           );
           

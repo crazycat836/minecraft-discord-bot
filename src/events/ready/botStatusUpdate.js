@@ -4,6 +4,11 @@ import { ActivityType } from 'discord.js';
 import serverDataManager from '../../services/serverDataManager.js';
 import logger from '../../utils/logger.js';
 import i18n from '../../utils/i18n.js';
+import { promises as fsPromises } from 'fs';
+import path from 'path';
+
+// Construct the absolute path for the data.json file
+const dataPath = path.join(process.cwd(), 'src', 'data.json');
 
 // Define statusEmojis outside the function to avoid recreating it on every call
 const statusEmojis = {
@@ -23,8 +28,40 @@ export default async (client) => {
    */
   const updateBotStatus = async () => {
     try {
-      // Get server data
-      const result = await serverDataManager.getServerData(config);
+      // Read data.json to get the latest server configuration
+      let serverConfig = {...config};
+      try {
+        const dataContent = await fsPromises.readFile(dataPath, 'utf8');
+        const dataJson = JSON.parse(dataContent);
+        
+        // Use the first server in autoChangeStatus if it exists
+        if (dataJson.autoChangeStatus && dataJson.autoChangeStatus.length > 0) {
+          const serverRecord = dataJson.autoChangeStatus[0];
+          logger.debug(`BotStatus: Using server from data.json: ${serverRecord.ip}:${serverRecord.port}`);
+          
+          // Create a custom config with the server details from data.json
+          serverConfig = {
+            ...config,
+            mcserver: {
+              ...config.mcserver,
+              ip: serverRecord.ip,
+              port: serverRecord.port,
+              type: serverRecord.type || 'java',
+              name: serverRecord.name || serverRecord.ip
+            }
+          };
+        }
+      } catch (error) {
+        logger.warn(`BotStatus: Could not read data.json, using default config: ${error.message}`);
+      }
+      
+      // Clear serverDataManager's cache to force a fresh check
+      serverDataManager.pendingRequest = null;
+      serverDataManager.currentRequestKey = null;
+      
+      // Get server data using the configuration from data.json
+      logger.debug(`BotStatus: Checking status for ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
+      const result = await serverDataManager.getServerData(serverConfig);
       
       if (!result || !result.data) {
         const presenceData = await client.user.setPresence({
@@ -93,6 +130,12 @@ export default async (client) => {
   await updateBotStatus();
   
   // Set up periodic updates
-  const updateInterval = Math.max(60, parseInt(process.env.UPDATE_INTERVAL) || 60) * 1000;
-  setInterval(() => updateBotStatus(), updateInterval);
+  const updateInterval = config.autoChangeStatus.updateInterval * 1000; // Use the config value directly
+  setInterval(async () => {
+    logger.debug('BotStatus: Starting scheduled update');
+    // Clear serverDataManager's cache before each update
+    serverDataManager.pendingRequest = null;
+    serverDataManager.currentRequestKey = null;
+    await updateBotStatus();
+  }, updateInterval);
 };

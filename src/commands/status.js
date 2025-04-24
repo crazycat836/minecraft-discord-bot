@@ -20,12 +20,12 @@ export default {
       // Import the necessary functions
       const { getServerDataAndPlayerList } = await import('../index.js');
       
-      // Get server data
-      const result = await getServerDataAndPlayerList(true);
+      // Get server data and player list - don't use dataOnly parameter
+      const result = await getServerDataAndPlayerList();
       
       // Create the embed based on the result
       const { statusEmbed } = await import('../embeds.js');
-      const embed = statusEmbed(result);
+      const embed = await statusEmbed(result);
       
       // Edit the deferred reply with the embed
       await interaction.editReply({ embeds: [embed] });
@@ -40,7 +40,7 @@ export default {
   },
 
   options: {
-    // If the status command or slashCommands is not enabled, remove the command from Discord
-    deleted: !commands.status.enabled || !commands.slashCommands,
+    // Only check if slashCommands is enabled
+    deleted: !commands.slashCommands,
   },
 };

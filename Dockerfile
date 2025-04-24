@@ -38,7 +38,11 @@ COPY --from=builder --chown=nodejs:nodejs /app ./
 # Discord Bot Settings
 ENV DISCORD_BOT_TOKEN="" \
     DISCORD_GUILD_ID="" \
-    STATS_CHANNEL_ID=""
+    STATS_CHANNEL_ID="" \
+    BOT_PRESENCE_ENABLED="true" \
+    BOT_ACTIVITY="Playing" \
+    BOT_STATUS_ONLINE="online" \
+    BOT_STATUS_OFFLINE="dnd"
 
 # Minecraft Server Settings
 ENV MC_SERVER_IP="" \
@@ -46,14 +50,12 @@ ENV MC_SERVER_IP="" \
     MC_SERVER_TYPE="java" \
     MC_SERVER_NAME="" \
     MC_SERVER_VERSION="" \
-    MC_SERVER_ICON="https://i.imgur.com/6Msem8Q.png" \
     MC_SERVER_SITE=""
 
 # Language Settings
-ENV LANGUAGE_MAIN="zh-TW"
-
-# Node Environment
-ENV NODE_ENV="production"
+ENV LANGUAGE_MAIN="zh-TW" \
+    TIMEZONE="Asia/Taipei" \
+    INVITE_LINK="true"
 
 # Feature Toggles
 ENV AUTO_CHANGE_STATUS_ENABLED="true" \
@@ -61,18 +63,27 @@ ENV AUTO_CHANGE_STATUS_ENABLED="true" \
     ADMIN_ONLY="false" \
     PLAYER_AVATAR_EMOJI="true" \
     IS_ONLINE_CHECK="true" \
-    INVITE_LINK_ENABLED="true" \
-    PLAYER_COUNT_ENABLED="true" \
-    PLAYER_COUNT_UPDATE_INTERVAL="60"
+    PLAYER_COUNT_ENABLED="true"
 
-# Use tini as entrypoint
-ENTRYPOINT ["/sbin/tini", "--"]
+# Command Aliases
+ENV COMMAND_PREFIX="!" \
+    CMD_IP_ALIAS="ip-address" \
+    CMD_SITE_ALIAS="vote,link" \
+    CMD_VERSION_ALIAS="" \
+    CMD_PLAYERS_ALIAS="plist" \
+    CMD_STATUS_ALIAS="" \
+    CMD_MOTD_ALIAS="" \
+    CMD_INFO_ALIAS="" \
+    CMD_HELP_ALIAS="commands"
+
+# Node Environment - Set to dockerdebug for Info level logging
+ENV NODE_ENV="production"
 
 # Start the bot
-CMD ["npm", "start"]
+CMD ["node", "src/index.js"]
 
 # Add labels
 LABEL org.opencontainers.image.source="https://github.com/crazycat836/minecraft-discord-bot" \
       org.opencontainers.image.description="Discord bot for Minecraft server monitoring" \
       org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.url="https://hub.docker.com/r/crazycat836/minecraftrobot"
+      org.opencontainers.image.url="https://hub.docker.com/r/crazycat836/minecraftrobot" 

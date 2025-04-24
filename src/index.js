@@ -1,3 +1,4 @@
+// import 'dotenv/config';
 import 'dotenv/config';
 
 import { Client, IntentsBitField, EmbedBuilder } from 'discord.js';
@@ -5,6 +6,7 @@ import { statusBedrock, statusJava } from 'node-mcstatus';
 import config from '../config.js';
 import chalk from 'chalk';
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import { CommandKit } from 'commandkit';
 import process from 'node:process';
 import path, { dirname } from 'path';
@@ -116,7 +118,7 @@ const cmdSlashTranslation = languageService.getTranslation('slash-cmds');
   checkError(!config.mcserver.version || config.mcserver.version === '', consoleLogTranslation.checkErrorConfig.mcVersion);
   
   checkError(
-    config.playerCountCH.enabled && config.playerCountCH.guildID === 'your-guild-id-here',
+    config.playerCountCH.enabled && (!config.settings || !config.settings.guildID),
     consoleLogTranslation.checkErrorConfig.guildID
   );
 
@@ -206,8 +208,40 @@ const groupPlayerList = (playerListArrayRaw) => {
 
 const getServerDataAndPlayerList = async (dataOnly) => {
   try {
-    // Use serverDataManager to get server data
-    const result = await serverDataManager.getServerData(config);
+    // Read data.json to get the latest server configuration
+    let serverConfig = {...config};
+    try {
+      const dataJsonPath = path.join(process.cwd(), 'src', 'data.json');
+      const dataContent = await fsPromises.readFile(dataJsonPath, 'utf8');
+      const dataJson = JSON.parse(dataContent);
+      
+      // Use the first server in autoChangeStatus if it exists
+      if (dataJson.autoChangeStatus && dataJson.autoChangeStatus.length > 0) {
+        const serverRecord = dataJson.autoChangeStatus[0];
+        logger.debug(`ServerData: Using server from data.json: ${serverRecord.ip}:${serverRecord.port}`);
+        
+        // Create a custom config with the server details from data.json
+        serverConfig = {
+          ...config,
+          mcserver: {
+            ...config.mcserver,
+            ip: serverRecord.ip,
+            port: serverRecord.port,
+            type: serverRecord.type || 'java',
+            name: serverRecord.name || serverRecord.ip
+          }
+        };
+      }
+    } catch (error) {
+      logger.warn(`ServerData: Could not read data.json, using default config: ${error.message}`);
+    }
+    
+    // Clear serverDataManager's cache to force a fresh check
+    serverDataManager.pendingRequest = null;
+    serverDataManager.currentRequestKey = null;
+    
+    // Use serverDataManager to get server data with the latest config
+    const result = await serverDataManager.getServerData(serverConfig);
     
     // Use the new logger
     logger.info(`ServerData: Request processed, dataOnly=${dataOnly}, isOnline=${result?.isOnline}`);
@@ -310,7 +344,6 @@ const getPlayersListWithEmoji = async (playerListRaw, client) => {
     );
     return result;
   } catch (error) {
-    if (!config.settings.logging.errorLog) return;
     logger.error('Error processing player avatar emoji', error);
   }
 };
@@ -324,16 +357,19 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
         ...config.mcserver,
         ip,
         port,
-        type
+        type,
+        name
       }
     };
+    
+    logger.debug(`StatusMsg: Checking server ${ip}:${port} (${type}) with name "${name}"`);
     
     // Use serverDataManager to get server data
     const result = await serverDataManager.getServerData(tempConfig);
     
     // If unable to get data, display offline status
     if (!result || !result.data) {
-      logger.error('StatusMsg: Failed to get server data, showing offline status');
+      logger.error(`StatusMsg: Failed to get server data for ${ip}:${port}, showing offline status`);
       const { offlineStatus } = await import('./embeds.js');
       await message.edit({ content: '', embeds: [offlineStatus()] });
       return;
@@ -372,7 +408,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
       const description_field_two = editDescriptionFields(embedTranslation.onlineEmbed.description_field_two);
       const title = editDescriptionFields(embedTranslation.onlineEmbed.title);
       const onlineEmbed = new EmbedBuilder()
-        .setColor(config.settings.embedsColors.online)
+        .setColor('Green')
         .setAuthor({ name: name })
         .setThumbnail(`https://api.mcstatus.io/v2/icon/${ip}:${port}`)
         .setTitle(title)

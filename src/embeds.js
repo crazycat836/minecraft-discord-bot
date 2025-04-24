@@ -5,13 +5,18 @@ import process from 'node:process';
 import os from 'os';
 import logger from './utils/logger.js';
 
-const { mcserver, commands, settings } = config;
+const { mcserver, commands } = config;
 
 // Generate IP string based on server type (Bedrock vs. Java)
 const ipBedrock = `IP: \`${mcserver.ip}\`\nPort: \`${mcserver.port}\``;
 const port = mcserver.port === 25565 ? '' : `:\`${mcserver.port}\``;
 const ipJava = `**IP: \`${mcserver.ip}\`${port}**`;
 const ip = mcserver.type === 'bedrock' ? ipBedrock : ipJava;
+
+// Function to get server icon URL
+const getServerIconUrl = () => {
+  return `https://api.mcstatus.io/v2/icon/${mcserver.ip}:${mcserver.port}`;
+};
 
 /**
  * Helper function to replace placeholders in a template string.
@@ -30,24 +35,24 @@ function replacePlaceholders(template, replacements) {
 
 // Embed for site commands
 const siteEmbed = new EmbedBuilder()
-  .setColor(settings.embedsColors.basicCmds)
-  .setThumbnail(mcserver.icon)
+  .setColor('Aqua')
+  .setThumbnail(getServerIconUrl())
   .setAuthor({ name: mcserver.name })
   .setTitle(replacePlaceholders(embedTranslation.site.title, { site: mcserver.site }))
   .setDescription(replacePlaceholders(embedTranslation.site.description, { site: mcserver.site }));
 
 // Embed for version commands
 const versionEmbed = new EmbedBuilder()
-  .setColor(settings.embedsColors.basicCmds)
-  .setThumbnail(mcserver.icon)
+  .setColor('Aqua')
+  .setThumbnail(getServerIconUrl())
   .setAuthor({ name: mcserver.name })
   .setTitle(replacePlaceholders(embedTranslation.version.title, { version: mcserver.version }))
   .setDescription(replacePlaceholders(embedTranslation.version.description, { version: mcserver.version }));
 
 // Embed for ip commands
 const ipEmbed = new EmbedBuilder()
-  .setColor(settings.embedsColors.basicCmds)
-  .setThumbnail(mcserver.icon)
+  .setColor('Aqua')
+  .setThumbnail(getServerIconUrl())
   .setAuthor({ name: mcserver.name })
   .setTitle(replacePlaceholders(embedTranslation.ip.title, { ip }))
   .setDescription(replacePlaceholders(embedTranslation.ip.description, { ip }));
@@ -57,27 +62,30 @@ const offlineStatus = () => {
   try {
     // Create base embed first
     const embed = new EmbedBuilder()
-      .setColor(settings.embedsColors.offline)
-      .setThumbnail(mcserver.icon)
+      .setColor('Red')
+      .setThumbnail(getServerIconUrl())
       .setAuthor({ name: mcserver.name })
       .setTitle(embedTranslation.offlineEmbed.title)
       .setTimestamp()
       .setFooter({ text: embedTranslation.offlineEmbed.footer });
     
-    // Only set description if it's not empty
+    // Check if description exists in translation
     if (embedTranslation.offlineEmbed.description && embedTranslation.offlineEmbed.description.trim() !== '') {
       const description = embedTranslation.offlineEmbed.description
         .replace(/\{ip\}/gi, ip)
         .replace(/\{port\}/gi, port);
       
       embed.setDescription(description);
+    } else {
+      // If no description exists in translation, set a space to satisfy API requirements
+      embed.setDescription(" ");
     }
     
     return embed;
   } catch (error) {
     logger.error('Error creating offline status embed', error);
     return new EmbedBuilder()
-      .setColor(settings.embedsColors.offline)
+      .setColor('Red')
       .setTitle('Server Offline')
       .setDescription('Error creating embed');
   }
@@ -91,8 +99,8 @@ const motdEmbed = async () => {
   } else {
     const replacements = { motd: data.motd.clean };
     return new EmbedBuilder()
-      .setColor(settings.embedsColors.online)
-      .setThumbnail(mcserver.icon)
+      .setColor('Green')
+      .setThumbnail(getServerIconUrl())
       .setAuthor({ name: mcserver.name })
       .setTitle(replacePlaceholders(embedTranslation.motd.title, replacements))
       .setDescription(replacePlaceholders(embedTranslation.motd.description, replacements))
@@ -109,8 +117,8 @@ const playerList = async () => {
       return offlineStatus();
     } else {
       return new EmbedBuilder()
-        .setColor(settings.embedsColors.online)
-        .setThumbnail(mcserver.icon)
+        .setColor('Green')
+        .setThumbnail(getServerIconUrl())
         .setAuthor({ name: mcserver.name })
         .addFields(playerListArray)
         .setTimestamp()
@@ -123,9 +131,14 @@ const playerList = async () => {
 };
 
 // Embed for status commands based on online status
-const statusEmbed = async () => {
-  const { data, playerListArray, isOnline } = await getServerDataAndPlayerList();
-  return isOnline ? await OnlineEmbed(data, playerListArray) : offlineStatus();
+const statusEmbed = async (result) => {
+  if (!result) {
+    // If result is not provided, get server data
+    const serverData = await getServerDataAndPlayerList();
+    return serverData.isOnline ? await OnlineEmbed(serverData.data, serverData.playerListArray) : offlineStatus();
+  }
+  
+  return result.isOnline ? await OnlineEmbed(result.data, result.playerListArray) : offlineStatus();
 };
 
 // Online embed for status commands
@@ -149,10 +162,11 @@ const OnlineEmbed = async (data, playerlist) => {
     const title = editDescriptionFields(embedTranslation.onlineEmbed.title);
 
     return new EmbedBuilder()
-      .setColor(settings.embedsColors.online)
-      .setThumbnail(mcserver.icon)
+      .setColor('Green')
+      .setThumbnail(getServerIconUrl())
       .setAuthor({ name: mcserver.name })
       .setTitle(title)
+      .setDescription(" ") // Adding a space as description to satisfy API requirements
       .addFields(playerlist)
       .addFields({
         name: description_field_one,
@@ -197,15 +211,13 @@ const helpEmbed = async (client, commandName) => {
       );
   }
 
-  // Build a list of enabled command names from config
-  const visibleCmdsNames = [];
-  for (const key in commands) {
-    if (commands[key].enabled) {
-      visibleCmdsNames.push(key);
-    }
-  }
+  // Build a list of all valid command names from config, excluding system keys
+  const visibleCmdsNames = Object.keys(commands).filter(
+    key => !['slashCommands', 'prefixCommands'].includes(key)
+  );
   const cmdsList = [];
-  // Add each fetched command that is enabled in config
+  
+  // Add each fetched command that is in our valid commands list
   commandsFetch.forEach((command) => {
     if (visibleCmdsNames.includes(command.name)) {
       cmdsList.push(
@@ -216,6 +228,7 @@ const helpEmbed = async (client, commandName) => {
       );
     }
   });
+
   return new EmbedBuilder()
     .setTitle(
       replacePlaceholders(embedTranslation.help.title, {

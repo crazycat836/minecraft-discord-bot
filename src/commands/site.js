@@ -21,7 +21,7 @@ export default {
   },
 
   options: {
-    // If the site command, slashCommands or mcserver.site is not enabled, remove the command from Discord
-    deleted: !commands.site.enabled || !commands.slashCommands || !mcserver.site,
+    // Only check if slashCommands is enabled and mcserver.site exists
+    deleted: !commands.slashCommands || !mcserver.site,
   },
 };

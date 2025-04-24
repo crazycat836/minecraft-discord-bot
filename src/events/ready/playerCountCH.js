@@ -35,8 +35,51 @@ export default async (client) => {
       
       logger.debug(`PlayerCount: Successfully found channel "${channel.name}" (${channel.id})`);
       
-      // Get server data
-      const result = await serverDataManager.getServerData(config);
+      // Check if bot has manage channel permissions
+      if (channel.guild && channel.permissionsFor) {
+        const botPermissions = channel.permissionsFor(client.user);
+        const canManageChannel = botPermissions.has('MANAGE_CHANNELS');
+        
+        if (!canManageChannel) {
+          logger.error(`PlayerCount: ERROR - Bot does not have permission to manage channel "${channel.name}"`);
+          return;
+        }
+      }
+      
+      // Read data.json to get the latest server configuration
+      let serverConfig = {...config};
+      try {
+        const dataContent = await fsPromises.readFile(dataPath, 'utf8');
+        const dataJson = JSON.parse(dataContent);
+        
+        // Use the first server in autoChangeStatus if it exists
+        if (dataJson.autoChangeStatus && dataJson.autoChangeStatus.length > 0) {
+          const serverRecord = dataJson.autoChangeStatus[0];
+          logger.debug(`PlayerCount: Using server from data.json: ${serverRecord.ip}:${serverRecord.port}`);
+          
+          // Create a custom config with the server details from data.json
+          serverConfig = {
+            ...config,
+            mcserver: {
+              ...config.mcserver,
+              ip: serverRecord.ip,
+              port: serverRecord.port,
+              type: serverRecord.type || 'java',
+              name: serverRecord.name || serverRecord.ip
+            }
+          };
+        }
+      } catch (error) {
+        logger.warn(`PlayerCount: Could not read data.json, using default config: ${error.message}`);
+      }
+      
+      // Clear serverDataManager's cache to force a fresh check
+      serverDataManager.pendingRequest = null;
+      serverDataManager.currentRequestKey = null;
+      
+      // Get server data using the configuration
+      logger.debug(`PlayerCount: Checking status for ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
+      const result = await serverDataManager.getServerData(serverConfig);
       
       // Determine the status name based on server status
       let statusName;
@@ -61,7 +104,6 @@ export default async (client) => {
           logger.warn('PlayerCount: Variables not replaced in the status name!');
           // Manually create the status name if the translation variables aren't replacing
           statusName = `🟢 ${data.players.online}/${data.players.max} 位玩家在線`;
-          logger.debug(`PlayerCount: Using fallback status name: "${statusName}"`);
         }
       } else {
         statusName = languageService.getText('bot-status', 'playerCount.offline');
@@ -83,10 +125,18 @@ export default async (client) => {
           channel.name.includes('{playermax}')) {
         logger.info(`PlayerCount: Updating channel name from "${channel.name}" to "${statusName}"`);
         try {
-          await channel.setName(statusName);
-          logger.debug(`PlayerCount: Successfully updated channel name to "${statusName}"`);
+          await channel.setName(statusName)
+            .then(() => {
+              logger.info(`PlayerCount: Successfully updated channel name to "${statusName}"`);
+            })
+            .catch((error) => {
+              logger.error(`PlayerCount: Discord API error updating channel name: ${error.message}`, error);
+              if (error.code === 30000) {
+                logger.warn('PlayerCount: Rate limit hit for channel rename - Discord limits channel name changes to 2 per 10 minutes');
+              }
+            });
         } catch (editError) {
-          logger.error(`PlayerCount: Error updating channel name`, editError);
+          logger.error(`PlayerCount: Error updating channel name: ${editError.message}`, editError);
         }
       } else {
         logger.debug(`PlayerCount: Channel name already up to date (${statusName})`);
@@ -100,6 +150,18 @@ export default async (client) => {
     // Main function to update player count channel
     async function updatePlayerCount() {
       try {
+        // Read the latest data.json
+        try {
+          const fileContent = await fsPromises.readFile(dataPath, 'utf8');
+          const latestData = JSON.parse(fileContent);
+          
+          // Update dataIDS with the latest data
+          dataIDS = latestData;
+          logger.debug('PlayerCount: Updated memory cache with latest data.json content');
+        } catch (readError) {
+          logger.warn(`PlayerCount: Could not read latest data.json: ${readError.message}`);
+        }
+        
         // Use the channel ID from config or from data.json
         const channelIdToUse = config.playerCountCH.channelId;
         logger.debug(`PlayerCount: Starting update cycle for channel ${channelIdToUse}`);
@@ -190,6 +252,11 @@ export default async (client) => {
       setInterval(async () => {
         try {
           logger.debug('PlayerCount: Starting scheduled update');
+          
+          // Clear serverDataManager's cache before each update
+          serverDataManager.pendingRequest = null;
+          serverDataManager.currentRequestKey = null;
+          
           await updatePlayerCount();
           
           // Update last update time in data.json

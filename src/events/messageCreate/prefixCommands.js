@@ -28,7 +28,6 @@ export default async (message, client) => {
    */
   const commandMatches = (commandName) => {
     const cmdConfig = commands[commandName];
-    if (!cmdConfig || !cmdConfig.enabled) return false;
     // Check if the command equals the main command name or any alias
     return command === commandName || (Array.isArray(cmdConfig.alias) && cmdConfig.alias.includes(command));
   };
@@ -40,7 +39,7 @@ export default async (message, client) => {
     if (args[0]) {
       // Create an array of valid command names, excluding non-prefix related ones
       const validCommands = Object.keys(commands).filter(cmdName => 
-        commands[cmdName].enabled && !['slashCommands', 'prefixCommands', 'language'].includes(cmdName)
+        !['slashCommands', 'prefixCommands', 'language'].includes(cmdName)
       );
       if (validCommands.includes(args[0].toLowerCase())) {
         return message.channel.send({ embeds: [await helpEmbed(client, args[0].toLowerCase())] });

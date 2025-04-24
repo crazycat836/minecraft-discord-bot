@@ -22,7 +22,7 @@ export default {
   },
 
   options: {
-    // If the ip command or slashCommands is not enabled, remove the command from Discord
-    deleted: !commands.ip.enabled || !commands.slashCommands,
+    // Only check if slashCommands is enabled
+    deleted: !commands.slashCommands,
   },
 };

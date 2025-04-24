@@ -32,7 +32,7 @@ export default {
   },
 
   options: {
-    // If set to true, the command will be removed from Discord
-    deleted: !commands.info.enabled || !commands.slashCommands,
+    // Only check if slashCommands is enabled
+    deleted: !commands.slashCommands,
   },
 };

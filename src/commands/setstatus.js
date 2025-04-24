@@ -61,22 +61,25 @@ if (autoChangeStatus.adminOnly) {
   data.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels);
 }
 
-async function run({ interaction, client }) {
+export { data };
+
+export async function run({ interaction, client }) {
   try {
+    // Defer the reply first to give us time to process
+    await interaction.deferReply({ ephemeral: true });
+    
     // Check if autoChangeStatus feature is enabled
     if (!autoChangeStatus.enabled) {
       await interaction.editReply({
         content: cmdSlashTranslation.setstatus.enableFeature,
-        flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
     // Check if the user has admin permissions or if adminOnly is disabled
     if (autoChangeStatus.adminOnly && !interaction.member.permissions.has('ADMINISTRATOR')) {
-      await interaction.reply({
+      await interaction.editReply({
         content: cmdSlashTranslation.setstatus.adminOnly,
-        ephemeral: true,
       });
       return;
     }
@@ -172,5 +175,3 @@ async function run({ interaction, client }) {
     logger.error('Error in setStatus command', error);
   }
 }
-
-export { data, run };

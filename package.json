@@ -1,13 +1,17 @@
 {
   "name": "minecraft-discord-bot",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A feature-rich and highly customizable Discord bot that provides information about your Minecraft server.",
   "main": "src/index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node src/index.js",
     "dev": "cross-env NODE_ENV=development node --watch src/index.js",
-    "setup": "cp .env.example .env && echo 'Created .env file from example. Please edit it with your settings.'",
-    "docker:build": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push ."
+    "setup": "cp docker-compose.example.yml docker-compose.yml && echo '已創建 docker-compose.yml，請編輯裡面的環境變數'",
+    "docker:build": "docker compose build",
+    "docker:dev": "docker compose up",
+    "docker:dev:logs": "docker compose logs -f",
+    "docker:dev:stop": "docker compose down",
+    "docker:deploy": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push ."
   },
   "type": "module",
   "engines": {

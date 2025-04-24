@@ -14,7 +14,7 @@ export default {
     try {
       // Create the help embed
       const helpEmbed = new EmbedBuilder()
-        .setColor(settings.embedsColors.basicCmds)
+        .setColor('Aqua')
         .setTitle(cmdSlashTranslation.help.embed.title)
         .setDescription(cmdSlashTranslation.help.embed.description)
         .setTimestamp()
@@ -23,15 +23,13 @@ export default {
           iconURL: interaction.client.user.displayAvatarURL(),
         });
 
-      // Add fields for each enabled command
-      if (commands.ip.enabled) {
-        helpEmbed.addFields({
-          name: `/${cmdSlashTranslation.ip.name}`,
-          value: cmdSlashTranslation.ip.description,
-        });
-      }
+      // Add fields for each command
+      helpEmbed.addFields({
+        name: `/${cmdSlashTranslation.ip.name}`,
+        value: cmdSlashTranslation.ip.description,
+      });
 
-      if (commands.site.enabled && config.mcserver.site) {
+      if (config.mcserver.site) {
         helpEmbed.addFields({
           name: `/${cmdSlashTranslation.site.name}`,
           value: cmdSlashTranslation.site.description,
@@ -46,7 +44,7 @@ export default {
   },
 
   options: {
-    // If the help command or slashCommands is not enabled, remove the command from Discord
-    deleted: !commands.help.enabled || !commands.slashCommands,
+    // Only check if slashCommands is enabled
+    deleted: !commands.slashCommands,
   },
 };

@@ -40,7 +40,7 @@ export default {
   },
 
   options: {
-    // If the players command or slashCommands is not enabled, remove the command from Discord
-    deleted: !commands.players.enabled || !commands.slashCommands,
+    // Only check if slashCommands is enabled
+    deleted: !commands.slashCommands,
   },
 };

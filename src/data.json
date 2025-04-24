@@ -1,16 +1,16 @@
 {
   "playerCountStats": {
     "channelId": "1336554763940139080",
-    "lastUpdate": 1744110238949
+    "lastUpdate": 1745469438126
   },
   "autoChangeStatus": [
     {
-      "ip": "220.135.27.28",
+      "ip": "151.145.71.135",
       "port": 25565,
       "type": "java",
-      "name": "crazycat836’s server",
-      "channelId": "1337812760775626893",
-      "messageId": "1349046195510706220",
+      "name": "minecraft Server",
+      "channelId": "1364561849617617049",
+      "messageId": "1364664129759084565",
       "isPlayerAvatarEmoji": false
     }
   ]

@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mc-discord-bot-dev
+    restart: "no"
+    environment:
+      # Node 環境設定
+      - NODE_ENV=development
+      
+      # Discord Bot 設定
+      - DISCORD_BOT_TOKEN=your_discord_bot_token_here
+      - DISCORD_GUILD_ID=your_guild_id_here
+      - STATS_CHANNEL_ID=your_stats_channel_id_here
+      - BOT_PRESENCE_ENABLED=true
+      - BOT_ACTIVITY=Playing
+      - BOT_STATUS_ONLINE=online
+      - BOT_STATUS_OFFLINE=dnd
+      
+      # Minecraft 伺服器設定
+      - MC_SERVER_IP=your_minecraft_server_ip_here
+      - MC_SERVER_PORT=25565
+      - MC_SERVER_TYPE=java
+      - MC_SERVER_NAME=Minecraft Server
+      - MC_SERVER_VERSION=1.20.4
+      - MC_SERVER_SITE=your_server_website_here
+      
+      # 語言設定
+      - LANGUAGE_MAIN=zh-TW
+      - TIMEZONE=Asia/Taipei
+      - INVITE_LINK=true
+      
+      # 功能開關
+      - AUTO_CHANGE_STATUS_ENABLED=true
+      - UPDATE_INTERVAL=60
+      - ADMIN_ONLY=false
+      - PLAYER_AVATAR_EMOJI=true
+      - IS_ONLINE_CHECK=true
+      - PLAYER_COUNT_ENABLED=true
+      
+      # 指令別名
+      - COMMAND_PREFIX=!
+      - CMD_IP_ALIAS=ip-address
+      - CMD_SITE_ALIAS=vote,link
+      - CMD_VERSION_ALIAS=
+      - CMD_PLAYERS_ALIAS=plist
+      - CMD_STATUS_ALIAS=
+      - CMD_MOTD_ALIAS=
+      - CMD_INFO_ALIAS=
+      - CMD_HELP_ALIAS=commands
+    volumes:
+      - ./src:/app/src
+      - ./locales:/app/locales
+    # 覆蓋指令，使用 node 的 watch 模式以支援熱重載
+    command: ["node", "--watch", "src/index.js"] 

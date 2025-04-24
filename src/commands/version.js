@@ -22,7 +22,7 @@ export default {
   },
 
   options: {
-    // Remove this command if version command or slashCommands are disabled
-    deleted: !commands.version.enabled || !commands.slashCommands,
+    // Only check if slashCommands is enabled
+    deleted: !commands.slashCommands,
   },
-};
+}; 

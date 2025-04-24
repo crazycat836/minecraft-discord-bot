@@ -44,3 +44,6 @@ config.js  # 包含敏感信息的配置文件
 
 # Runtime data files
 src/data.json 
+
+# Docker configuration with sensitive information
+docker-compose.yml 
