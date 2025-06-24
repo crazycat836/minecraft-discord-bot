@@ -63,6 +63,26 @@ if (autoChangeStatus.adminOnly) {
 
 export { data };
 
+/**
+ * Validates if the input is a valid hostname or IP address
+ * @param {string} input - The hostname or IP to validate
+ * @returns {boolean} - True if valid hostname or IP
+ */
+function isValidHostnameOrIP(input) {
+  // Remove http:// or https:// prefixes if present
+  const cleanInput = input.replace(/^https?:\/\//i, '');
+  
+  // Check if it's a valid IP address
+  if (isIP(cleanInput)) {
+    return true;
+  }
+  
+  // Simple domain name validation (allows subdomains like mc.gary-hsu.com)
+  // This regex checks for a valid domain name pattern
+  const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/;
+  return domainRegex.test(cleanInput);
+}
+
 export async function run({ interaction, client }) {
   try {
     // Defer the reply first to give us time to process
@@ -108,9 +128,9 @@ export async function run({ interaction, client }) {
     const type = interaction.options.getString('type') || mcserver.type;
     const name = interaction.options.getString('name') || mcserver.name;
 
-    // Validate the IP format using validator.js isIP function
-    if (!isIP(ip)) {
-      throw new Error(`Invalid IP "${ip}"`);
+    // Validate the IP format using our custom validator that accepts both IPs and domain names
+    if (!isValidHostnameOrIP(ip)) {
+      throw new Error(`Invalid hostname or IP "${ip}"`);
     }
 
     // Determine whether to use player avatar emoji based on permissions and settings
@@ -170,7 +190,7 @@ export async function run({ interaction, client }) {
       flags: MessageFlags.Ephemeral,
     });
     // If the error is due to an invalid IP format, stop further processing
-    if (error.message.startsWith('Invalid IP')) return;
+    if (error.message.startsWith('Invalid hostname or IP')) return;
     // Log the error details for debugging purposes
     logger.error('Error in setStatus command', error);
   }

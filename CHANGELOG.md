@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2024-05-01
+
+### Fixed
+- 修復了 IP 指令無法正確解析一般網址的問題
+- 改進了 IP 地址顯示格式，使其在 Discord 中更加清晰易讀
+- 增強了伺服器地址處理，現在支援帶有 http:// 或 https:// 前綴的網址
+- 修復了 setstatus 命令中的域名驗證問題，現在可以接受域名格式的伺服器地址
+
 ## [1.1.2] - 2024-04-23
 
 ### Changed
@@ -119,3 +127,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.0]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.0 
 [1.1.1]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.1 
 [1.1.2]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.2 
+[1.1.3]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.3 

@@ -37,11 +37,17 @@ A bot that connects your Minecraft server to Discord, providing real-time server
   - `help` - **Provides a list of available commands.**
   - `help [command]` - **Sends detailed information about a command.**
 
-## What's New in v1.1.2
+## What's New in v1.1.3
 
-This update simplifies the language configuration system and improves naming consistency across the codebase.
+This update fixes issues with IP address resolution and improves URL handling.
 
-### Improved in v1.1.2
+### Fixed in v1.1.3
+- **IP Address Resolution**: Fixed issues with resolving standard URLs in the IP command
+- **Improved URL Display**: Enhanced the formatting of server addresses in Discord messages
+- **URL Prefix Support**: Added support for URLs with http:// or https:// prefixes
+- **Domain Name Support**: Fixed validation in setstatus command to accept domain names as server addresses
+
+### Improved in Previous Release (v1.1.2)
 - **Simplified Language Configuration**: Consolidated multiple language settings into a single environment variable for easier setup
 - **Fixed Command Files**: Corrected file naming for the version command
 - **Code Cleanup**: Removed redundant example files and improved organization

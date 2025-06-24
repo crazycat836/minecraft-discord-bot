@@ -87,11 +87,18 @@ export default async (client) => {
           playermax: data.players.max
         });
 
+        // Make sure variables are actually replaced
+        const finalStatusText = statusText
+          .replace(/{playeronline}/g, data.players.online)
+          .replace(/{playermax}/g, data.players.max);
+
+        logger.debug(`BotStatus: Generated status text: "${finalStatusText}"`);
+        
         presenceData = await client.user.setPresence({
           status: presence.status.online,
           activities: [
             {
-              name: statusText,
+              name: finalStatusText,
               type: ActivityType[presence.activity],
             },
           ],

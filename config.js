@@ -29,6 +29,25 @@ export default {
       inviteLink: process.env.INVITE_LINK === 'false' ? false : true,
     },
   },
+  autoReply: {
+    enabled: process.env.AUTO_REPLY_ENABLED === 'false' ? false : true,
+    ip: {
+      enabled: process.env.AUTO_REPLY_IP_ENABLED === 'false' ? false : true,
+      triggerWords: process.env.AUTO_REPLY_IP_TRIGGER ? process.env.AUTO_REPLY_IP_TRIGGER.split(',') : ['ip', 'address', 'connect', 'server address'],
+    },
+    site: {
+      enabled: process.env.AUTO_REPLY_SITE_ENABLED === 'false' ? false : true,
+      triggerWords: process.env.AUTO_REPLY_SITE_TRIGGER ? process.env.AUTO_REPLY_SITE_TRIGGER.split(',') : ['website', 'site', 'web'],
+    },
+    status: {
+      enabled: process.env.AUTO_REPLY_STATUS_ENABLED === 'false' ? false : true,
+      triggerWords: process.env.AUTO_REPLY_STATUS_TRIGGER ? process.env.AUTO_REPLY_STATUS_TRIGGER.split(',') : ['status', 'online', 'offline'],
+    },
+    version: {
+      enabled: process.env.AUTO_REPLY_VERSION_ENABLED === 'false' ? false : true,
+      triggerWords: process.env.AUTO_REPLY_VERSION_TRIGGER ? process.env.AUTO_REPLY_VERSION_TRIGGER.split(',') : ['version', 'ver'],
+    },
+  },
   autoChangeStatus: {
     enabled: process.env.AUTO_CHANGE_STATUS_ENABLED === 'false' ? false : true,
     updateInterval: parseInt(process.env.UPDATE_INTERVAL) || 60,

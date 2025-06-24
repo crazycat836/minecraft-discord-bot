@@ -43,14 +43,14 @@ services:
       
       # 指令別名
       - COMMAND_PREFIX=!
-      - CMD_IP_ALIAS=ip-address
-      - CMD_SITE_ALIAS=vote,link
-      - CMD_VERSION_ALIAS=
-      - CMD_PLAYERS_ALIAS=plist
-      - CMD_STATUS_ALIAS=
-      - CMD_MOTD_ALIAS=
-      - CMD_INFO_ALIAS=
-      - CMD_HELP_ALIAS=commands
+      - CMD_IP_ALIAS=ip-address,address,server-ip,connect
+      - CMD_SITE_ALIAS=vote,link,website,web
+      - CMD_VERSION_ALIAS=ver,mc-version,game-version
+      - CMD_PLAYERS_ALIAS=plist,online,who,list,users
+      - CMD_STATUS_ALIAS=server,online-status,health,check
+      - CMD_MOTD_ALIAS=message,server-message,description
+      - CMD_INFO_ALIAS=about,bot,bot-info,stats
+      - CMD_HELP_ALIAS=commands,cmd,guide,manual
     volumes:
       - ./src:/app/src
       - ./locales:/app/locales

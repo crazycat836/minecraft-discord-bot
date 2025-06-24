@@ -70,7 +70,11 @@ class ServerDataManager {
    */
   async _fetchServerData(config) {
     this.requestCount++;
-    this.logger.debug(`Fetching data for ${config.mcserver.ip}:${config.mcserver.port} (Request #${this.requestCount})`);
+    
+    // 處理伺服器 IP，移除可能的協議前綴 (http://, https://)
+    const serverIp = config.mcserver.ip.replace(/^https?:\/\//i, '');
+    
+    this.logger.debug(`Fetching data for ${serverIp}:${config.mcserver.port} (Request #${this.requestCount})`);
     
     let retries = 0;
     
@@ -79,8 +83,8 @@ class ServerDataManager {
         // Determine which API to use based on server type
         const statusFunction = config.mcserver.type === 'bedrock' ? statusBedrock : statusJava;
         
-        // Call the appropriate status function
-        const data = await statusFunction(config.mcserver.ip, config.mcserver.port);
+        // Call the appropriate status function with cleaned IP
+        const data = await statusFunction(serverIp, config.mcserver.port);
         
         // Check if server is actually online based on returned data
         const isOnline = data && data.online !== false;
@@ -88,7 +92,7 @@ class ServerDataManager {
         // Prepare player list data
         const playerList = isOnline && data.players ? data.players : { online: 0, max: 0, list: [] };
         
-        this.logger.debug(`Server ${config.mcserver.ip} status: ${isOnline ? 'Online' : 'Offline'}, Players: ${playerList.online}/${playerList.max}`);
+        this.logger.debug(`Server ${serverIp} status: ${isOnline ? 'Online' : 'Offline'}, Players: ${playerList.online}/${playerList.max}`);
         if (isOnline && playerList.list && playerList.list.length > 0) {
           this.logger.debug(`Active players: ${playerList.list.map(p => p.name_clean || p.name || p).join(', ')}`);
         }
@@ -130,7 +134,7 @@ class ServerDataManager {
     }
     
     // If we've exhausted all retries
-    this.logger.error(`All retries failed for ${config.mcserver.ip}:${config.mcserver.port}, returning offline status`);
+    this.logger.error(`All retries failed for ${serverIp}:${config.mcserver.port}, returning offline status`);
     
     const result = { data: null, isOnline: false, playerList: { online: 0, max: 0, list: [] } };
     

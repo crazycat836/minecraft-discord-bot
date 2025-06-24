@@ -9,8 +9,8 @@ const { mcserver, commands } = config;
 
 // Generate IP string based on server type (Bedrock vs. Java)
 const ipBedrock = `IP: \`${mcserver.ip}\`\nPort: \`${mcserver.port}\``;
-const port = mcserver.port === 25565 ? '' : `:\`${mcserver.port}\``;
-const ipJava = `**IP: \`${mcserver.ip}\`${port}**`;
+const port = mcserver.port === 25565 ? '' : `:${mcserver.port}`;
+const ipJava = `**IP: \`${mcserver.ip}${port}\`**`;
 const ip = mcserver.type === 'bedrock' ? ipBedrock : ipJava;
 
 // Function to get server icon URL
