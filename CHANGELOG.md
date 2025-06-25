@@ -5,15 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.3] - 2024-05-01
+## [1.1.3] - 2025-06-24
 
 ### Fixed
-- 修復了 IP 指令無法正確解析一般網址的問題
-- 改進了 IP 地址顯示格式，使其在 Discord 中更加清晰易讀
-- 增強了伺服器地址處理，現在支援帶有 http:// 或 https:// 前綴的網址
-- 修復了 setstatus 命令中的域名驗證問題，現在可以接受域名格式的伺服器地址
+- Fixed IP command unable to properly resolve standard URLs
+- Improved IP address display formatting for better clarity in Discord messages
+- Enhanced server address handling with support for http:// and https:// prefixes
+- Fixed domain name validation in setstatus command to accept domain name format server addresses
 
-## [1.1.2] - 2024-04-23
+## [1.1.2] - 2025-04-24
 
 ### Changed
 - Simplified language configuration by consolidating multiple language settings into a single environment variable
@@ -22,13 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced configuration files structure for better maintainability
 - Updated documentation to reflect the streamlined language setup
 
-## [1.1.1] - 2024-04-08
+## [1.1.1] - 2025-04-08
 
 ### Fixed
 - Republished release with corrected Docker image tags
 - Fixed documentation to use the updated Docker image name consistently
 
-## [1.1.0] - 2024-04-08
+## [1.1.0] - 2025-04-08
 
 ### Added
 - Complete rebuild of the translation system using i18next framework
@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issues with player count variables not properly displaying in channel names
 - Fixed logger configuration to properly handle different environments
 
-## [1.0.4] - 2024-03-11
+## [1.0.4] - 2025-03-12
 
 ### Added
 - Added dedicated translation files for bot status and player count text
@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed inconsistencies in language handling between different features
 - Improved fallback mechanism for language loading
 
-## [1.0.3] - 2024-03-12
+## [1.0.3] - 2025-03-12
 
 ### Changed
 - Improved autoChangeStatus functionality to handle missing channels or messages
@@ -74,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved potential file access conflicts in data.json handling
 - Improved error recovery when channels or messages are not found
 
-## [1.0.2] - 2024-03-09
+## [1.0.2] - 2025-03-09
 
 ### Added
 - Traditional Chinese (zh-TW) translation support
@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Environment variables example
 - Project metadata and documentation
 
-## [1.0.1] - 2024-03-09
+## [1.0.1] - 2025-03-07
 
 ### Changed
 - Improved configuration management
@@ -103,7 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better error handling for configuration errors
 - Clear documentation for environment variables
 
-## [1.0.0] - 2024-03-07
+## [1.0.0] - 2025-03-07
 
 ### Added
 - Initial release
