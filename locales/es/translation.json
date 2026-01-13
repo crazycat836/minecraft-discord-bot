@@ -1,0 +1,226 @@
+{
+  "console-log": {
+    "error": {
+      "playerEmbed": "Se produjo un error al crear el mensaje de lista de jugadores integrado.",
+      "statusEmbed": "Se produjo un error al crear el mensaje de estado integrado.",
+      "playerList": "Se produjo un error al crear la lista de jugadores.",
+      "fetchServerDataAndPlayerList": "Error al obtener datos del servidor de Minecraft y lista de jugadores.",
+      "fetchServerData": "Error al obtener datos del servidor de Minecraft.",
+      "messageEdit": "Error al editar el mensaje de estado.",
+      "botLogin": "Error de inicio de sesión del bot.",
+      "infoCmd": "Error en el comando de barra - Info.",
+      "motdCmd": "Error en el comando de barra - MOTD.",
+      "playerCmd": "Error en el comando de barra - Jugador.",
+      "statusCmd": "Error en el comando de barra - Estado.",
+      "statusPrefix": "Error en el comando de prefijo - Estado.",
+      "setStatus": "Error al establecer el mensaje de estado.",
+      "autoReply": "Error en la función de respuesta automática.",
+      "botStatusUpdate": "Error al actualizar el estado del bot.",
+      "channelIdCheck": "Error al verificar la ID del canal y actualizar.",
+      "playerCountCh": "Error en la función de recuento de jugadores del canal.",
+      "playerCountChNameUpdate": "Error al actualizar el nombre del canal de recuento de jugadores.",
+      "playerCountChDateWrite": "Error al guardar la ID del canal de recuento de jugadores en data.json.",
+      "playerAvatarGuildIdCheck": "Error al verificar el ID de Guild del Avatar del Jugador.",
+      "playerAvatarEmojiError": "Error al gestionar los emojis del avatar del jugador"
+    },
+    "debug": {
+      "autoChangeStatus": {
+        "onlineText": "En línea con {playerOnline} jugadores jugando.",
+        "offlineText": "❌ Fuera de línea.",
+        "format": "El mensaje integrado de estado se ha actualizado a {statusText}.",
+        "successLog": "Se estableció correctamente el mensaje de estado en {channelName}.",
+        "enableAutoChangeStatus": "Para establecer el estado del servidor, envía un comando {cmd} en el canal deseado.",
+        "playerAvatarGuildSuccessFull": "Gremio: `{playerAvatarGuildName}` fue encontrado y configurado correctamente como el servidor para los emojis del Avatar del Jugador.",
+        "playerAvatarGuildUnSuccessFull": "El gremio del Emoji del Avatar del Jugador con ID `{playerAvatarGuildID}` no se pudo encontrar, o el bot no está en el gremio."
+      },
+      "botStatusFormat": "La actividad del bot se ha actualizado a {botStatusText}.",
+      "playerCountChUpdate": "Se actualizó el nombre del canal de recuento de jugadores a {updatedName}."
+    },
+    "checkErrorConfig": {
+      "checkConfigWait": "Comprobando errores en el archivo config.js. Por favor, espera.",
+      "followingErrors": "El archivo de configuración tiene los siguientes errores:",
+      "botToken": "Token de bot no válido.",
+      "botPresenceStatus": "Opciones de estado de bot no válidas. Debería ser \"online\", \"idle\", \"dnd\" o \"invisible\".",
+      "botStatusActivity": "Opciones de actividad de bot no válidas. Debería ser \"Playing\", \"Listening\", \"Watching\" o \"Competing\".",
+      "mcType": "Tipo de servidor de Minecraft no válido. Debería ser \"java\" o \"bedrock\".",
+      "mcName": "No se ha especificado el nombre del servidor de Minecraft.",
+      "mcVersion": "No se ha especificado la versión del servidor de Minecraft.",
+      "guildID": "No se ha especificado o es inválida la ID del servidor o gremio.",
+      "timeZone": "La zona horaria especificada en el archivo de configuración no es válida.",
+      "slashCmdName": "El nombre proporcionado \"{givenCmdName}\" para el comando \"{cmdName}\" no es válido.\nPor favor, utiliza solo letras minúsculas, mayúsculas, la primera letra en mayúscula, números, guiones bajos y guiones."
+    },
+    "playerCountCh": {
+      "playerCountChGuildIncorrect": "No se encontró el gremio con ID: \"{guildID}\", o el bot no está en el gremio.",
+      "playerCountChannelFound": "Canal encontrado con éxito: {channelName} para el recuento de jugadores.",
+      "playerCountChannelNotFound": "No se encontró el canal de recuento de jugadores con ID: \"{channelId}\", o el bot no tiene acceso al canal.",
+      "playerCountChannelCreated": "Se creó un canal para el recuento de jugadores y se actualizó su nombre a: {updatedStatus}."
+    },
+    "inviteLink": "✅ {botUserTag} está en línea.\nInvita al bot con {inviteLink}.",
+    "serverInfoStart": {
+      "online": [
+        "--------------------------------------------------------",
+        "IP        | {ip}",
+        "VERSIÓN   | {version}",
+        "JUGADORES | {playersOnline} / {playersMax}",
+        "MOTD      | {motd_line1}",
+        "          | {motd_line2}",
+        "--------------------------------------------------------"
+      ],
+      "offline": [
+        "Actualmente no se puede ubicar el servidor de Minecraft con:",
+        "----------------------------------------------",
+        "IP     | {ip}",
+        "PUERTO | {port}",
+        "TIPO   | {mcServerType}",
+        "----------------------------------------------"
+      ]
+    }
+  },
+  "embeds": {
+    "ip": {
+      "title": "__**DIRECCIÓN DEL SERVIDOR**__",
+      "description": "**{ip}**"
+    },
+    "site": {
+      "title": "__**SITIO WEB**__",
+      "description": "**Enlace: {site}**"
+    },
+    "version": {
+      "title": "__**VERSIÓN**__",
+      "description": "**{version}**"
+    },
+    "offlineEmbed": {
+      "title": ":red_circle: FUERA DE LÍNEA",
+      "description": "",
+      "footer": "Comprobado en"
+    },
+    "errorEmbed": {
+      "title": ":orange_circle: NO SE PUDO CONECTAR",
+      "description": "No se pudo contactar con el servidor.\n**Error**: {error}",
+      "footer": "Comprobado en"
+    },
+    "players": {
+      "title": "__**JUGADORES**__",
+      "description": "**{playeronline}/{playermax}**"
+    },
+    "motd": {
+      "title": "__**MOTD**__",
+      "description": "**{motd}**"
+    },
+    "onlineEmbed": {
+      "title": ":green_circle: EN LÍNEA",
+      "description_field_one": "__**MOTD**__\n**{motd}**\n\n__**DIRECCIÓN DEL SERVIDOR**__\n**{ip}**",
+      "description_field_two": "__**VERSIÓN**__\n**{version}**{siteText}",
+      "siteText": "\n\n__**SITIO WEB**__\n**Enlace: {site}**",
+      "footer": "Comprobado en"
+    },
+    "help": {
+      "title": "__**LISTA DE COMANDOS**__",
+      "description": "**Prefijo: `{prefix}`**",
+      "listFormat": "{slashCmdMention} **`-` {cmdDescription}**",
+      "commandInfoFormat": {
+        "title": "__**Comando {cmdName}**__",
+        "description": "**Comando slash: {cmdSlashMention}\nDescripción: `{cmdDescription}`\nComandos de prefijo: `{prefixCmd}`\nAlias de prefijo: {prefixCmdAlias}**"
+      }
+    },
+    "info": {
+      "title": "**Información y estadísticas del bot**",
+      "description": "**Uso de CPU: `{cpuUsage}%`\nUso de memoria: `{memoryUsage}MB`\nVersión de Node.js: `{nodeVersion}`\nTiempo de actividad del bot: `{uptimeDays}` días, `{uptimeHours}` horas, `{uptimeMinutes}` minutos, `{uptimeSeconds}` segundos\nPing: Cliente `{ping}ms` | Websocket: `{websocket}ms` **"
+    }
+  },
+  "slash-cmds": {
+    "help": {
+      "name": "help",
+      "description": "Envía la lista de comandos disponibles.",
+      "options": {
+        "name": "command",
+        "description": "Envía los detalles sobre un comando."
+      }
+    },
+    "ip": {
+      "name": "ip",
+      "description": "Envía la dirección del servidor de Minecraft."
+    },
+    "site": {
+      "name": "site",
+      "description": "Envía el enlace del sitio web/votación del servidor de Minecraft."
+    },
+    "version": {
+      "name": "version",
+      "description": "Envía la versión del servidor de Minecraft."
+    },
+    "motd": {
+      "name": "motd",
+      "description": "Envía el Mensaje del Día (MOTD) del servidor de Minecraft.",
+      "errorReply": ":warning:  **`Se produjo un error al recuperar el Mensaje del Día (MOTD).`**"
+    },
+    "players": {
+      "name": "players",
+      "description": "Envía la lista de jugadores que están actualmente en línea en el servidor de Minecraft.",
+      "errorReply": ":warning:  **`Se produjo un error al recuperar la lista de jugadores en línea.`**"
+    },
+    "status": {
+      "name": "status",
+      "description": "Envía el estado actual del servidor de Minecraft.",
+      "errorReply": ":warning:  **`No se puede encontrar el estado del servidor debido a un error.`**"
+    },
+    "info": {
+      "name": "info",
+      "description": "Envía la información actual sobre el bot.",
+      "errorReply": ":warning:  **`Se produjo un error al recuperar la información.`**"
+    },
+    "setstatus": {
+      "name": "setstatus",
+      "description": "Establece el mensaje de estado del servidor de Minecraft en el canal actual.",
+      "serverName": "Ingresa el nombre de tu servidor de Minecraft.",
+      "serverIp": "Ingresa la dirección IP de tu servidor de Minecraft.",
+      "serverPort": "Ingresa el número de puerto de tu servidor de Minecraft.",
+      "serverType": "Elige el tipo de servidor: Java o Bedrock",
+      "playerAvatar": "Opción para que los ADMINISTRADORES muestren los avatares de los jugadores junto a la lista de jugadores.",
+      "errorReply": "warning:  **`No se pudo establecer el mensaje de estado debido a un error: {error}.`**",
+      "enableFeature": "**Por favor, habilita `Cambio automático de estado` en la configuración para activar la función de mensajes de estado.**",
+      "checkingStatusMsg": ":gear: Verificando el estado...",
+      "checkingStatusCmdMsg": ":arrows_clockwise: Verificando el estado e información necesaria.",
+      "statusMsgSuccess": ":white_check_mark: **El mensaje de estado se ha establecido correctamente en {channel}. Mensaje:** {messageLink}."
+    },
+    "setsite": {
+      "name": "setsite",
+      "description": "Establecer la URL del sitio web del servidor.",
+      "url": "Ingresa la URL del sitio web.",
+      "success": ":white_check_mark: **URL del sitio web actualizada a:** <{site}>",
+      "invalidUrl": ":warning: **Formato de URL no válido.**"
+    },
+    "setname": {
+      "name": "setname",
+      "description": "Establecer el nombre para mostrar del servidor.",
+      "nameOption": "Ingresa el nombre del servidor.",
+      "success": ":white_check_mark: **Nombre del servidor actualizado a:** {name}"
+    }
+  },
+  "auto-reply": {
+    "version": {
+      "replyText": "La versión del servidor: **`{version}`**."
+    },
+    "ip": {
+      "replyText": "**IP: `{ip}`\nPuerto: `{port}`**"
+    },
+    "site": {
+      "replyText": "Enlace al sitio web del servidor: **<{site}>**."
+    },
+    "status": {
+      "onlineReply": "El servidor está actualmente **`🟢EN LÍNEA`** con **`{playerOnline}/{playerMax}`** jugadores activos.",
+      "offlineReply": "El servidor está actualmente **`🔴FUERA DE LÍNEA`**."
+    }
+  },
+  "bot-status": {
+    "botStatus": {
+      "online": "Jugando con {playeronline}/{playermax} jugadores",
+      "offline": "El servidor está desconectado"
+    },
+    "playerCount": {
+      "online": "🟢 {playeronline}/{playermax} jugadores activos",
+      "offline": "🔴 Desconectado",
+      "error": "🟠 Error de conexión"
+    }
+  }
+}

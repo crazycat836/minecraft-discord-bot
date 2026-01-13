@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mc-discord-bot-dev
+    restart: "no"
+    environment:
+      # Node 環境設定
+      - NODE_ENV=development
+      
+      # Discord Bot 設定
+      - DISCORD_BOT_TOKEN=your_discord_bot_token_here
+      - DISCORD_GUILD_ID=your_guild_id_here
+      # 頻道人數計數器的頻道 ID。注意：此選項必須在此設定，無法透過指令動態更改。
+      # 如果不需要此功能，請留空或刪除此行。
+      - STATS_CHANNEL_ID=your_stats_channel_id_here
+      - BOT_PRESENCE_ENABLED=true
+      - BOT_ACTIVITY=Playing
+      - BOT_STATUS_ONLINE=online
+      - BOT_STATUS_OFFLINE=dnd
+            
+      # 語言設定
+      - LANGUAGE_MAIN=en
+      - TIMEZONE=Asia/Taipei
+      - INVITE_LINK=true
+      
+      # 功能開關
+      - AUTO_CHANGE_STATUS_ENABLED=true
+      - UPDATE_INTERVAL=60
+      - ADMIN_ONLY=false
+      - PLAYER_AVATAR_EMOJI=true
+      - IS_ONLINE_CHECK=true
+      - PLAYER_COUNT_ENABLED=true
+      
+      # 指令別名
+      - COMMAND_PREFIX=!
+      - CMD_IP_ALIAS=ip-address,address,server-ip,connect
+      - CMD_SITE_ALIAS=vote,link,website,web
+      - CMD_VERSION_ALIAS=ver,mc-version,game-version
+      - CMD_PLAYERS_ALIAS=plist,online,who,list,users
+      - CMD_STATUS_ALIAS=server,online-status,health,check
+      - CMD_MOTD_ALIAS=message,server-message,description
+      - CMD_INFO_ALIAS=about,bot,bot-info,stats
+      - CMD_HELP_ALIAS=commands,cmd,guide,manual
+    volumes:
+      - ./src:/app/src
+      - ./locales:/app/locales
+    # 覆蓋指令，使用 node 的 watch 模式以支援熱重載
+    command: ["node", "--watch", "src/index.js"] 

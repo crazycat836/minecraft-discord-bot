@@ -1,0 +1,152 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.2.0] - 2026-01-13
+
+### Added
+- New `setsite` command to dynamically update the server website URL
+- New `setname` command to dynamically update the server name
+- Added distinction between "Offline" (server down) and "Error" (connection failed) states in status messages
+- Added missing translations for `setsite` and `setname` commands across all supported languages
+
+### Changed
+- **BREAKING**: Changed default language to English (`en`) for better accessibility (previously `zh-TW`)
+- Refactored `ServerDataManager` for better concurrency and thread safety
+- Refactored `botStatusUpdate` and `embeds` systems to strictly use dynamic data from `data.json`
+- Standardized all code comments to English for improved maintainability
+- Improved logging readability and reduced console noise
+
+### Fixed
+- Fixed "Invalid Form Body" error in embeds
+- Fixed `DeprecationWarning` regarding the `ready` event (renamed to `clientReady`)
+- Fixed character encoding issues in status messages for German (`de`) and Portuguese (`pt`)
+- Fixed `playerCount.error` status message missing in non-English translation files
+- Fixed frozen status updates by refactoring the status update loop logic
+
+## [1.1.3] - 2025-06-24
+
+### Fixed
+- Fixed IP command unable to properly resolve standard URLs
+- Improved IP address display formatting for better clarity in Discord messages
+- Enhanced server address handling with support for http:// and https:// prefixes
+- Fixed domain name validation in setstatus command to accept domain name format server addresses
+
+## [1.1.2] - 2025-04-24
+
+### Changed
+- Simplified language configuration by consolidating multiple language settings into a single environment variable
+- Corrected version command file naming for better consistency
+- Removed redundant example files and improved code organization
+- Enhanced configuration files structure for better maintainability
+- Updated documentation to reflect the streamlined language setup
+
+## [1.1.1] - 2025-04-08
+
+### Fixed
+- Republished release with corrected Docker image tags
+- Fixed documentation to use the updated Docker image name consistently
+
+## [1.1.0] - 2025-04-08
+
+### Added
+- Complete rebuild of the translation system using i18next framework
+- Added cross-env support for better compatibility across different operating systems
+- Added environment-aware logging levels (development: TRACE, test: DEBUG, production/docker: INFO)
+
+### Changed
+- Improved logging system with environment-specific default log levels
+- Streamlined Docker configuration by removing Docker Compose functionality
+- Updated documentation to reflect the latest changes and improvements
+- Removed deprecated code, tests, and conversion scripts to streamline the codebase
+
+### Fixed
+- Fixed issues with player count variables not properly displaying in channel names
+- Fixed logger configuration to properly handle different environments
+
+## [1.0.4] - 2025-03-12
+
+### Added
+- Added dedicated translation files for bot status and player count text
+- Added support for automatic language-based text in bot status and player count channels
+
+### Changed
+- Improved multilingual system to use language-specific text for bot status
+- Removed hardcoded text options in favor of language-based translations
+- Updated documentation to reflect new multilingual features
+- Enhanced Docker configuration with clearer language settings
+
+### Fixed
+- Fixed inconsistencies in language handling between different features
+- Improved fallback mechanism for language loading
+
+## [1.0.3] - 2025-03-12
+
+### Changed
+- Improved autoChangeStatus functionality to handle missing channels or messages
+- Enhanced error handling in server data management
+- Standardized logging format with consistent timestamps
+- Replaced localized log messages with English for better consistency
+
+### Fixed
+- Fixed issue where autoChangeStatus would retain invalid records
+- Resolved potential file access conflicts in data.json handling
+- Improved error recovery when channels or messages are not found
+
+## [1.0.2] - 2025-03-09
+
+### Added
+- Traditional Chinese (zh-TW) translation support
+- AMD64 platform Docker build script
+- Project documentation in Traditional Chinese
+
+### Changed
+- Upgraded to Node.js 23 Alpine in Docker
+- Optimized Docker configuration
+- Updated npm scripts for better Docker management
+
+### Improved
+- Configuration file documentation
+- Environment variables example
+- Project metadata and documentation
+
+## [1.0.1] - 2025-03-07
+
+### Changed
+- Improved configuration management
+- Added `.env.example` template for easier setup
+- Updated environment variable handling for better security
+
+### Added
+- Detailed setup instructions in README
+- Better error handling for configuration errors
+- Clear documentation for environment variables
+
+## [1.0.0] - 2025-03-07
+
+### Added
+- Initial release
+- Discord bot core functionality
+- Real-time Minecraft server status monitoring
+- Multi-language support
+- Customizable commands and responses
+- Docker support for easy deployment
+- Cross-platform compatibility (Java & Bedrock)
+- Anti-crash system
+- Dynamic status messages
+- Player avatar support
+- Colorful console logging
+
+[1.0.4]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.4
+[1.0.3]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.3
+[1.0.2]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.2
+[1.0.1]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.1
+[1.0.0]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.0.0
+
+[1.1.0]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.0 
+[1.1.1]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.1 
+[1.1.2]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.2 
+[1.1.3]: https://github.com/crazycat836/minecraft-discord-bot/releases/tag/v1.1.3 

@@ -1,0 +1,226 @@
+{
+  "console-log": {
+    "error": {
+      "playerEmbed": "An error occurred while creating Player List Embeds Message.",
+      "statusEmbed": "An error occurred while creating Status Embeds Message.",
+      "playerList": "An error occurred while creating the Player List.",
+      "fetchServerDataAndPlayerList": "Failed to fetch Minecraft Server Data and Player List.",
+      "fetchServerData": "Failed to fetch Minecraft Server Data.",
+      "messageEdit": "Error while editing the Status Message.",
+      "botLogin": "Bot Login Error.",
+      "infoCmd": "Error in Slash Command - Info.",
+      "motdCmd": "Error in Slash Command - MOTD.",
+      "playerCmd": "Error in Slash Command - Player.",
+      "statusCmd": "Error in Slash Command - Status.",
+      "statusPrefix": "Error in Prefix Command - Status.",
+      "setStatus": "Failed to set Status Message.",
+      "autoReply": "Error in Auto-Reply Feature.",
+      "botStatusUpdate": "Error in Updating the Bot's Status.",
+      "channelIdCheck": "Error in Channel ID Check and Updating.",
+      "playerCountCh": "Error in Player Count Channel Feature.",
+      "playerCountChNameUpdate": "Error in Updating Player Count Channel Name.",
+      "playerCountChDateWrite": "Error in Saving Player Count Channel ID in data.json.",
+      "playerAvatarGuildIdCheck": "Error while checking Player Avatar Guild ID.",
+      "playerAvatarEmojiError": "Error while managing player avatar emojis"
+    },
+    "debug": {
+      "autoChangeStatus": {
+        "onlineText": "Online with {playerOnline} Players Playing.",
+        "offlineText": "❌ Offline.",
+        "format": "Status Embed Message has been updated to {statusText}.",
+        "successLog": "Successfully set the status message in {channelName}.",
+        "enableAutoChangeStatus": "To set the server status, send a {cmd} command in the desired channel.",
+        "playerAvatarGuildSuccessFull": "Guild: `{playerAvatarGuildName}` was successfully found and set as the server for Player Avatar emojis.",
+        "playerAvatarGuildUnSuccessFull": "The Player Avatar Emoji's guild with ID `{playerAvatarGuildID}` could not be found, or the bot is not in the guild."
+      },
+      "botStatusFormat": "Bot's activity has been updated to {botStatusText}.",
+      "playerCountChUpdate": "Player Count channel name is updated to {updatedName}."
+    },
+    "checkErrorConfig": {
+      "checkConfigWait": "Checking for Errors in the config.js file. Please wait.",
+      "followingErrors": "Config file has the following errors:",
+      "botToken": "Invalid Bot Token.",
+      "botPresenceStatus": "Invalid bot status options. Should be 'online', 'idle', 'dnd' or 'invisible'.",
+      "botStatusActivity": "Invalid bot activity options. Should be 'Playing', 'Listening','Watching' or 'Competing'",
+      "mcType": "Invalid Minecraft server type. Should be \"java\" or \"bedrock\".",
+      "mcName": "The Minecraft server's name has not been specified.",
+      "mcVersion": "The Minecraft server's version has not been specified.",
+      "guildID": "The Server/Guild ID has not been specified or is invalid.",
+      "timeZone": "The time zone specified in the config file is not valid.",
+      "slashCmdName": "The provided name \"{givenCmdName}\" for the \"{cmdName}\" command is invalid.\nPlease use only lowercase, uppercase, title case letters, numbers, underscores, and hyphens."
+    },
+    "playerCountCh": {
+      "playerCountChGuildIncorrect": "The guild with ID: \"{guildID}\" was not found, or the bot is not in the guild.",
+      "playerCountChannelFound": "Successfully found channel: {channelName} for Player Count.",
+      "playerCountChannelNotFound": "The channel for Player Count with ID: \"{channelId}\" was not found, or the bot has no access to the channel.",
+      "playerCountChannelCreated": "Created a channel for Player Count and updated its name to: {updatedStatus}."
+    },
+    "inviteLink": "✅ {botUserTag} is online.\nInvite the bot with {inviteLink}.",
+    "serverInfoStart": {
+      "online": [
+        "--------------------------------------------------------",
+        "IP       | {ip}",
+        "VERSION  | {version}",
+        "PLAYERS  | {playersOnline} / {playersMax}",
+        "MOTD     | {motd_line1}",
+        "         | {motd_line2}",
+        "--------------------------------------------------------"
+      ],
+      "offline": [
+        "Currently unable to locate the Minecraft server with:",
+        "----------------------------------------------",
+        "IP   | {ip}",
+        "PORT | {port}",
+        "TYPE | {mcServerType}",
+        "----------------------------------------------"
+      ]
+    }
+  },
+  "embeds": {
+    "ip": {
+      "title": "__**SERVER ADDRESS**__",
+      "description": "**{ip}**"
+    },
+    "site": {
+      "title": "__**WEBSITE**__",
+      "description": "**Link: {site}**"
+    },
+    "version": {
+      "title": "__**VERSION**__",
+      "description": "**{version}**"
+    },
+    "offlineEmbed": {
+      "title": ":red_circle: OFFLINE",
+      "description": "",
+      "footer": "Checked at"
+    },
+    "errorEmbed": {
+      "title": ":orange_circle: UNABLE TO CONNECT",
+      "description": "Could not reach the server.\n**Error**: {error}",
+      "footer": "Checked at"
+    },
+    "players": {
+      "title": "__**PLAYERS**__",
+      "description": "**{playeronline}/{playermax}**"
+    },
+    "motd": {
+      "title": "__**MOTD**__",
+      "description": "**{motd}**"
+    },
+    "onlineEmbed": {
+      "title": ":green_circle: ONLINE",
+      "description_field_one": "__**MOTD**__\n**{motd}**\n\n__**SERVER ADDRESS**__\n**{ip}**",
+      "description_field_two": "‎ \n__**VERSION**__\n**{version}**{siteText}",
+      "siteText": "\n\n__**WEBSITE**__\n**Link: {site}**",
+      "footer": "Checked at"
+    },
+    "help": {
+      "title": "__**COMMANDS LIST**__",
+      "description": "**Prefix: `{prefix}`**",
+      "listFormat": "{slashCmdMention} **`-` {cmdDescription}**",
+      "commandInfoFormat": {
+        "title": "__**{cmdName} Command**__",
+        "description": "**Slash command: {cmdSlashMention}\nDescription: `{cmdDescription}`\nPrefix Commands: `{prefixCmd}`\nPrefix Alias: {prefixCmdAlias}**"
+      }
+    },
+    "info": {
+      "title": "**Bot Info and Stats**",
+      "description": "**CPU Usage: `{cpuUsage}%`\nMemory Usage: `{memoryUsage}MB`\nNode.js Version: `{nodeVersion}`\nBot uptime: `{uptimeDays}` days, `{uptimeHours}` hours, `{uptimeMinutes}`, minutes, `{uptimeSeconds}` seconds\nPing: Client `{ping}ms` | Websocket: `{websocket}ms` **"
+    }
+  },
+  "slash-cmds": {
+    "help": {
+      "name": "help",
+      "description": "Sends the list of available commands.",
+      "options": {
+        "name": "command",
+        "description": "Sends the details about a command."
+      }
+    },
+    "ip": {
+      "name": "ip",
+      "description": "Sends the server address of the Minecraft server."
+    },
+    "site": {
+      "name": "site",
+      "description": "Sends the website/vote link of the Minecraft server."
+    },
+    "version": {
+      "name": "version",
+      "description": "Sends the version of the Minecraft server."
+    },
+    "motd": {
+      "name": "motd",
+      "description": "Sends the Minecraft Server's Message of the Day (MOTD).",
+      "errorReply": ":warning:  **`An error occurred while retrieving the Message of the Day (MOTD).`**"
+    },
+    "players": {
+      "name": "players",
+      "description": "Sends the list of players who are currently online on the Minecraft server.",
+      "errorReply": ":warning:  **`An error occurred while retrieving the online players list.`**"
+    },
+    "status": {
+      "name": "status",
+      "description": "Sends the current status of the Minecraft server.",
+      "errorReply": ":warning:  **`Unable to find the status of the server due to an error.`**"
+    },
+    "info": {
+      "name": "info",
+      "description": "Sends the current information about the bot.",
+      "errorReply": ":warning:  **`An error occurred while retrieving Info.`**"
+    },
+    "setstatus": {
+      "name": "setstatus",
+      "description": "Sets the server info (IP, Port, Type) for auto-updating status messages.",
+      "serverName": "Enter the name of your Minecraft server.",
+      "serverIp": "Enter the IP address of your Minecraft server.",
+      "serverPort": "Enter the port number of your Minecraft server.",
+      "serverType": "Choose your server type: Java or Bedrock",
+      "playerAvatar": "Option for ADMINS to display player avatars alongside the player list.",
+      "errorReply": ":warning:  **`Could not set the status message due to an error: {error}.`**",
+      "enableFeature": "**Please enable `auto Change Status` in the config to enable the status message feature.**",
+      "checkingStatusMsg": ":gear: Checking the status...",
+      "checkingStatusCmdMsg": ":arrows_clockwise: Checking the status and necessary info.",
+      "statusMsgSuccess": ":white_check_mark: **Status message is set successfully in {channel}. Message:** {messageLink}."
+    },
+    "setsite": {
+      "name": "setsite",
+      "description": "Set the server website URL.",
+      "url": "Enter the website URL.",
+      "success": ":white_check_mark: **Website URL updated to:** <{site}>",
+      "invalidUrl": ":warning: **Invalid URL format.**"
+    },
+    "setname": {
+      "name": "setname",
+      "description": "Set the server display name.",
+      "nameOption": "Enter the server name.",
+      "success": ":white_check_mark: **Server name updated to:** {name}"
+    }
+  },
+  "auto-reply": {
+    "version": {
+      "replyText": "The server's version: **`{version}`**."
+    },
+    "ip": {
+      "replyText": "**IP: `{ip}`\nPort: `{port}`**"
+    },
+    "site": {
+      "replyText": "The server's website link: **<{site}>**."
+    },
+    "status": {
+      "onlineReply": "The server is currently **`🟢ONLINE`** with **`{playerOnline}/{playerMax}`** active players.",
+      "offlineReply": "The server is currently **`🔴OFFLINE`**."
+    }
+  },
+  "bot-status": {
+    "botStatus": {
+      "online": "Playing with {playeronline}/{playermax} players",
+      "offline": "Server is offline"
+    },
+    "playerCount": {
+      "online": "🟢 {playeronline}/{playermax} active players",
+      "offline": "🔴 Offline",
+      "error": "🟠 Connection Error"
+    }
+  }
+}
