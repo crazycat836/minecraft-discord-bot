@@ -33,6 +33,7 @@ USER nodejs
 # Copy built files from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app ./
 
+
 # Set environment variables
 # These will appear in the Docker environment variables interface
 # Discord Bot Settings
@@ -44,31 +45,13 @@ ENV DISCORD_BOT_TOKEN="" \
     BOT_STATUS_ONLINE="online" \
     BOT_STATUS_OFFLINE="dnd"
 
-# Minecraft Server Settings (Configured via Discord commands)
-
 # Language Settings
 ENV LANGUAGE_MAIN="zh-TW" \
     TIMEZONE="Asia/Taipei" \
     INVITE_LINK="true"
 
-# Feature Toggles
-ENV AUTO_CHANGE_STATUS_ENABLED="true" \
-    UPDATE_INTERVAL="60" \
-    ADMIN_ONLY="false" \
-    PLAYER_AVATAR_EMOJI="true" \
-    IS_ONLINE_CHECK="true" \
-    PLAYER_COUNT_ENABLED="true"
-
-# Command Aliases
-ENV COMMAND_PREFIX="!" \
-    CMD_IP_ALIAS="ip-address" \
-    CMD_SITE_ALIAS="vote,link" \
-    CMD_VERSION_ALIAS="" \
-    CMD_PLAYERS_ALIAS="plist" \
-    CMD_STATUS_ALIAS="" \
-    CMD_MOTD_ALIAS="" \
-    CMD_INFO_ALIAS="" \
-    CMD_HELP_ALIAS="commands"
+# Command Settings
+ENV COMMAND_PREFIX="!"
 
 # Node Environment - Set to dockerdebug for Info level logging
 ENV NODE_ENV="production"
