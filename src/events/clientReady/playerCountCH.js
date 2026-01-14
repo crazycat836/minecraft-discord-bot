@@ -81,6 +81,7 @@ export default async (client) => {
       serverDataManager.currentRequestKey = null;
 
       // Check if server is actually configured (has IP)
+      let statusName;
       if (!serverConfig.mcserver.ip || serverConfig.mcserver.ip === '') {
         // Not configured
         statusName = languageService.getText('bot-status', 'playerCount.notConfigured');
