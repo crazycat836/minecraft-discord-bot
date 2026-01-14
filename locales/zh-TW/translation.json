@@ -259,7 +259,8 @@
     "playerCount": {
       "online": "🟢 {playeronline}/{playermax} 位玩家在線",
       "offline": "🔴 離線中",
-      "error": "🟠 連線錯誤"
+      "error": "🟠 連線錯誤",
+      "notConfigured": "⚪ 尚未設定"
     }
   }
 }

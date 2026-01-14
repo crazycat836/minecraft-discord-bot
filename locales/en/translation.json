@@ -74,6 +74,49 @@
         "TYPE | {mcServerType}",
         "----------------------------------------------"
       ]
+    },
+    "startup": {
+      "botStarting": "正在啟動 {botName}...",
+      "botStarted": "{botName} 已啟動！",
+      "botStopped": "{botName} 已停止！",
+      "botReady": "{botName} 已就緒！",
+      "botError": "{botName} 發生錯誤！"
+    },
+    "config": {
+      "configLoaded": "已載入配置：{configName}",
+      "configError": "載入配置時發生錯誤：{configName}",
+      "configSaved": "已儲存配置：{configName}",
+      "configNotFound": "找不到配置：{configName}"
+    },
+    "commands": {
+      "commandLoaded": "已載入指令：{commandName}",
+      "commandError": "載入指令時發生錯誤：{commandName}",
+      "commandExecuted": "已執行指令：{commandName}",
+      "commandNotFound": "找不到指令：{commandName}"
+    },
+    "events": {
+      "eventLoaded": "已載入事件：{eventName}",
+      "eventError": "載入事件時發生錯誤：{eventName}",
+      "eventExecuted": "已執行事件：{eventName}",
+      "eventNotFound": "找不到事件：{eventName}"
+    },
+    "minecraft": {
+      "serverConnected": "已連接到 Minecraft 伺服器：{serverName}",
+      "serverDisconnected": "已斷開與 Minecraft 伺服器的連接：{serverName}",
+      "serverError": "連接到 Minecraft 伺服器時發生錯誤：{serverName}",
+      "serverNotFound": "找不到 Minecraft 伺服器：{serverName}"
+    },
+    "discord": {
+      "guildJoined": "已加入 Discord 伺服器：{guildName}",
+      "guildLeft": "已離開 Discord 伺服器：{guildName}",
+      "guildError": "處理 Discord 伺服器時發生錯誤：{guildName}",
+      "guildNotFound": "找不到 Discord 伺服器：{guildName}"
+    },
+    "database": {
+      "databaseConnected": "已連接到資料庫：{databaseName}",
+      "databaseDisconnected": "已斷開與資料庫的連接：{databaseName}",
+      "databaseError": "連接到資料庫時發生錯誤：{databaseName}",
+      "databaseNotFound": "找不到資料庫：{databaseName}"
     }
   },
   "embeds": {
@@ -220,7 +263,8 @@
     "playerCount": {
       "online": "🟢 {playeronline}/{playermax} active players",
       "offline": "🔴 Offline",
-      "error": "🟠 Connection Error"
+      "error": "🟠 Connection Error",
+      "notConfigured": "⚪ Not Configured"
     }
   }
 }

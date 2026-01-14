@@ -4,8 +4,6 @@
   "description": "A feature-rich and highly customizable Discord bot that provides information about your Minecraft server.",
   "main": "src/index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node src/index.js",
-    "dev": "cross-env NODE_ENV=development node --watch src/index.js",
     "setup": "cp docker-compose.example.yml docker-compose.yml && echo '已創建 docker-compose.yml，請編輯裡面的環境變數'",
     "docker:build": "docker compose build",
     "docker:dev": "docker compose up",
@@ -38,16 +36,15 @@
   "dependencies": {
     "chalk": "^5.4.1",
     "commandkit": "^0.1.10",
-    "cross-env": "^7.0.3",
     "discord.js": "^14.17.3",
-    "dotenv": "^16.4.7",
-    "i18next": "^24.2.3",
+    "dotenv": "^17.2.3",
+    "i18next": "^25.7.4",
     "i18next-browser-languagedetector": "^8.0.4",
     "i18next-fs-backend": "^2.6.0",
     "i18next-http-backend": "^3.0.2",
     "json5": "^2.2.3",
     "node-mcstatus": "^1.2.1",
-    "react-i18next": "^15.4.1",
+    "react-i18next": "^16.5.3",
     "validator": "^13.12.0"
   }
 }

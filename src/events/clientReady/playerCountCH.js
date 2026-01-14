@@ -80,41 +80,47 @@ export default async (client) => {
       serverDataManager.pendingRequest = null;
       serverDataManager.currentRequestKey = null;
 
-      // Get server data using the configuration
-      logger.debug(`PlayerCount: Checking status for ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
-      const result = await serverDataManager.getServerData(serverConfig);
-
-      // Determine the status name based on server status
-      // This generates the string to use for the channel name (e.g. "🟢 5/20 Players")
-      let statusName;
-      if (result && result.isOnline) {
-        const { data } = result;
-        // Get the translation template
-        const translationTemplate = languageService.getText('bot-status', 'playerCount.online', {
-          playeronline: data.players.online,
-          playermax: data.players.max
-        });
-
-        // Make sure variables are actually replaced
-        statusName = translationTemplate
-          .replace(/{playeronline}/g, data.players.online)
-          .replace(/{playermax}/g, data.players.max);
-
-        logger.debug(`PlayerCount: Server online with ${data.players.online}/${data.players.max} players`);
-
-        // Log the status name to debug
-        logger.debug(`PlayerCount: Generated status name: "${statusName}"`);
-        if (statusName.includes('{playeronline}') || statusName.includes('{playermax}')) {
-          logger.warn('PlayerCount: Variables not replaced in the status name!');
-          // Manually create the status name if the translation variables aren't replacing
-          statusName = `🟢 ${data.players.online}/${data.players.max} Players Online`;
-        }
-      } else if (result && result.error) {
-        statusName = languageService.getText('bot-status', 'playerCount.error');
-        logger.debug(`PlayerCount: Server error: ${result.error}`);
+      // Check if server is actually configured (has IP)
+      if (!serverConfig.mcserver.ip || serverConfig.mcserver.ip === '') {
+        // Not configured
+        statusName = languageService.getText('bot-status', 'playerCount.notConfigured');
+        logger.debug(`PlayerCount: Server not configured (no IP)`);
       } else {
-        statusName = languageService.getText('bot-status', 'playerCount.offline');
-        logger.debug(`PlayerCount: Server offline`);
+        // Get server data using the configuration
+        logger.debug(`PlayerCount: Checking status for ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
+        const result = await serverDataManager.getServerData(serverConfig);
+
+        // Determine the status name based on server status
+        // This generates the string to use for the channel name (e.g. "🟢 5/20 Players")
+        if (result && result.isOnline) {
+          const { data } = result;
+          // Get the translation template
+          const translationTemplate = languageService.getText('bot-status', 'playerCount.online', {
+            playeronline: data.players.online,
+            playermax: data.players.max
+          });
+
+          // Make sure variables are actually replaced
+          statusName = translationTemplate
+            .replace(/{playeronline}/g, data.players.online)
+            .replace(/{playermax}/g, data.players.max);
+
+          logger.debug(`PlayerCount: Server online with ${data.players.online}/${data.players.max} players`);
+
+          // Log the status name to debug
+          logger.debug(`PlayerCount: Generated status name: "${statusName}"`);
+          if (statusName.includes('{playeronline}') || statusName.includes('{playermax}')) {
+            logger.warn('PlayerCount: Variables not replaced in the status name!');
+            // Manually create the status name if the translation variables aren't replacing
+            statusName = `🟢 ${data.players.online}/${data.players.max} Players Online`;
+          }
+        } else if (result && result.error) {
+          statusName = languageService.getText('bot-status', 'playerCount.error');
+          logger.debug(`PlayerCount: Server error: ${result.error}`);
+        } else {
+          statusName = languageService.getText('bot-status', 'playerCount.offline');
+          logger.debug(`PlayerCount: Server offline`);
+        }
       }
 
       // Only update if the name has changed to avoid hitting rate limits
