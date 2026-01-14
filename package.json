@@ -1,6 +1,6 @@
 {
   "name": "minecraft-discord-bot",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A feature-rich and highly customizable Discord bot that provides information about your Minecraft server.",
   "main": "src/index.js",
   "scripts": {
