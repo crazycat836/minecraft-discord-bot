@@ -56,7 +56,8 @@ ENV COMMAND_PREFIX="!"
 # Node Environment - Set to dockerdebug for Info level logging
 ENV NODE_ENV="production"
 
-# Start the bot
+# Use tini as init process for proper signal handling and zombie reaping
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "src/index.js"]
 
 # Add labels

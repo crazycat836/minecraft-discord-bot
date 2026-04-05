@@ -42,15 +42,15 @@ export default async (client) => {
     // Prepare online server info text
     const serverInfoOnlineText = consoleLogTranslation.serverInfoStart.online.join('\n');
     // Cache MOTD lines for reuse
-    const motdLines = data.motd.clean.split('\n');
+    const motdLines = (data.motd?.clean ?? '').split('\n');
     logger.info(
       serverInfoOnlineText
         .replace(/\{ip\}/gi, chalk.cyan.bold(formattedIp))
         .replace(/\{version\}/gi, chalk.cyan.bold(mcVersion))
         .replace(/\{playersOnline\}/gi, chalk.cyan.bold(data.players.online))
         .replace(/\{playersMax\}/gi, chalk.cyan.bold(data.players.max))
-        .replace(/\{motd_line1\}/gi, chalk.cyan.bold(motdLines[0]))
-        .replace(/\{motd_line2\}/gi, chalk.cyan.bold(motdLines[1]))
+        .replace(/\{motd_line1\}/gi, chalk.cyan.bold(motdLines[0] ?? ''))
+        .replace(/\{motd_line2\}/gi, chalk.cyan.bold(motdLines[1] ?? ''))
     );
   } else {
     // For offline status, use ipOffline to avoid naming conflict

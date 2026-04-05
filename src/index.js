@@ -6,13 +6,12 @@ import { Client, IntentsBitField, EmbedBuilder } from 'discord.js';
 import { statusBedrock, statusJava } from 'node-mcstatus';
 import config from '../config.js';
 import chalk from 'chalk';
-import fs from 'fs';
-import { promises as fsPromises } from 'fs';
 import { CommandKit } from 'commandkit';
 import process from 'node:process';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import serverDataManager from './services/serverDataManager.js';
+import { readData, getServerConfig } from './utils/dataStore.js';
 
 // Import the logger and translation systems
 import logger, { LogLevel } from './utils/logger.js';
@@ -115,8 +114,10 @@ const cmdSlashTranslation = languageService.getTranslation('slash-cmds');
   // Check if token is missing or has default value
   checkError(!config.bot.token || config.bot.token === '' || config.bot.token.startsWith('your-bot-token-here'), consoleLogTranslation.checkErrorConfig.botToken);
 
+  const validStatuses = ['online', 'idle', 'dnd', 'invisible'];
   checkError(
-    !['online', 'idle', 'dnd', 'invisible'].includes(config.bot.presence.status.online && config.bot.presence.status.offline),
+    !validStatuses.includes(config.bot.presence.status.online) ||
+    !validStatuses.includes(config.bot.presence.status.offline),
     consoleLogTranslation.checkErrorConfig.botPresenceStatus
   );
   checkError(
@@ -220,38 +221,7 @@ const groupPlayerList = (playerListArrayRaw) => {
 // Server Data Functions
 // ---------------------
 
-const getServerConfig = async () => {
-  try {
-    const dataJsonPath = path.join(process.cwd(), 'src', 'data.json');
-    const dataContent = await fsPromises.readFile(dataJsonPath, 'utf8');
-    const dataJson = JSON.parse(dataContent);
-
-    // Use the first server in autoChangeStatus if it exists
-    if (dataJson.autoChangeStatus && dataJson.autoChangeStatus.length > 0) {
-      const serverRecord = dataJson.autoChangeStatus[0];
-      const settings = dataJson.serverSettings || {};
-
-      // Create a custom config with the server details from data.json
-      return {
-        ...config,
-        mcserver: {
-          ...config.mcserver,
-          ip: serverRecord.ip,
-          port: serverRecord.port,
-          type: serverRecord.type || 'java',
-          name: settings.name || serverRecord.name || serverRecord.ip || config.mcserver.name || 'Minecraft Server',
-          site: settings.site || config.mcserver.site || '',
-          version: serverRecord.version || config.mcserver.version || 'Unknown'
-        }
-      };
-    }
-  } catch (error) {
-    logger.warn(`ServerData: Could not read data.json: ${error.message}`);
-  }
-
-  // Return default config if reading fails or no data
-  return { ...config };
-};
+// getServerConfig is imported from ./utils/dataStore.js
 
 /**
  * Fetches Minecraft server data and player list.
@@ -294,13 +264,9 @@ const getServerDataAndPlayerList = async (input = null, dataOnlyArg = false) => 
       logger.debug(`ServerData: Using provided config override: ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
     } else {
       // Default: Read data.json to get the latest server configuration
-      serverConfig = await getServerConfig();
+      serverConfig = (await getServerConfig()) || { ...config };
       logger.debug(`ServerData: Using server config: ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
     }
-
-    // Clear serverDataManager's cache to force a fresh check
-    serverDataManager.pendingRequest = null;
-    serverDataManager.currentRequestKey = null;
 
     // Use serverDataManager to get server data with the latest config
     // This handles request merging and retries internally
@@ -409,11 +375,16 @@ const getPlayersListWithEmoji = async (playerListRaw, client) => {
     return result;
   } catch (error) {
     logger.error('Error processing player avatar emoji', error);
+    return groupPlayerList({ online: playerListRaw.online, max: playerListRaw.max, list: [] });
   }
 };
 
 const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEmoji, client) => {
   try {
+    // Get site from data.json serverSettings
+    const dataJson = await readData();
+    const site = dataJson.serverSettings?.site || config.mcserver.site || '';
+
     // Create a temporary config object to get data for a specific server
     const tempConfig = {
       ...config,
@@ -435,7 +406,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
     if (!result || !result.data) {
       logger.error(`StatusMsg: Failed to get server data for ${ip}:${port}, showing offline status`);
       const { offlineStatus } = await import('./embeds.js');
-      await message.edit({ content: '', embeds: [offlineStatus()] });
+      await message.edit({ content: '', embeds: [await offlineStatus()] });
       return;
     }
 
@@ -460,12 +431,15 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
 
       function editDescriptionFields(description) {
         const versionStr = type === 'java' ? data.version.name_clean : data.version.name;
+        const siteText = site
+          ? embedTranslation.onlineEmbed.siteText.replace(/\{site\}/gi, site)
+          : '';
         return description
           .trim()
           .replace(/\{ip\}/gi, ipaddress)
           .replace(/\{motd\}/gi, data.motd.clean)
           .replace(/\{version\}/gi, versionStr)
-          .replace(/\{siteText\}/gi, '');
+          .replace(/\{siteText\}/gi, siteText);
       }
 
       const description_field_one = editDescriptionFields(embedTranslation.onlineEmbed.description_field_one);
@@ -486,9 +460,9 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
       // Check if there's an error message in the result
       if (result.error) {
         logger.debug(`StatusMsg: Showing error status due to: ${result.error}`);
-        await message.edit({ content: '', embeds: [errorStatus(result.error)] });
+        await message.edit({ content: '', embeds: [await errorStatus(result.error)] });
       } else {
-        await message.edit({ content: '', embeds: [offlineStatus()] });
+        await message.edit({ content: '', embeds: [await offlineStatus()] });
       }
     }
   } catch (error) {
@@ -497,7 +471,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
     try {
       // Try to display offline status even when an error occurs
       const { offlineStatus } = await import('./embeds.js');
-      await message.edit({ content: '', embeds: [offlineStatus()] });
+      await message.edit({ content: '', embeds: [await offlineStatus()] });
     } catch (secondError) {
       // If even displaying offline status fails, just log the error
       logger.error('StatusMsg: Failed to show offline status', secondError);

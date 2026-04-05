@@ -18,6 +18,7 @@ export default {
       await interaction.reply({ embeds: [await versionEmbed()] });
     } catch (error) {
       logger.error('Error executing version command', error);
+      await interaction.reply({ content: ':warning: An error occurred.', ephemeral: true }).catch(() => {});
     }
   },
 

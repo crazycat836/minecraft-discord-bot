@@ -17,6 +17,7 @@ export default {
       await interaction.reply({ embeds: [await siteEmbed()] });
     } catch (error) {
       logger.error('Error executing site command', error);
+      await interaction.reply({ content: ':warning: An error occurred.', ephemeral: true }).catch(() => {});
     }
   },
 

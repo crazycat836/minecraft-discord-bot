@@ -1,13 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
-import fs from 'fs/promises';
 import { cmdSlashTranslation } from '../index.js';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import logger from '../utils/logger.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const dataJsonPath = path.join(__dirname, '..', 'data.json');
+import { readData, writeData } from '../utils/dataStore.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -17,6 +11,7 @@ export default {
             option
                 .setName('name')
                 .setDescription(cmdSlashTranslation.setname.nameOption)
+                .setMaxLength(256)
                 .setRequired(true)
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
@@ -28,13 +23,7 @@ export default {
             const name = interaction.options.getString('name');
 
             // Read data.json
-            let dataRead;
-            try {
-                const readData = await fs.readFile(dataJsonPath, 'utf8');
-                dataRead = JSON.parse(readData);
-            } catch (e) {
-                dataRead = {};
-            }
+            let dataRead = await readData();
 
             // Initialize serverSettings if not exists
             if (!dataRead.serverSettings) {
@@ -45,7 +34,7 @@ export default {
             dataRead.serverSettings.name = name;
 
             // Write back to data.json
-            await fs.writeFile(dataJsonPath, JSON.stringify(dataRead, null, 2), 'utf8');
+            await writeData(dataRead);
 
             await interaction.editReply({
                 content: cmdSlashTranslation.setname.success.replace('{name}', name),

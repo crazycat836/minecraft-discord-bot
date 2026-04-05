@@ -32,57 +32,57 @@ export default async (message, client) => {
     return command === commandName || (Array.isArray(cmdConfig.alias) && cmdConfig.alias.includes(command));
   };
 
-  // Process the 'help' command
-  if (commandMatches('help')) {
-    await message.channel.sendTyping();
-    // If a subcommand argument is provided, check if it's a valid command
-    if (args[0]) {
-      // Create an array of valid command names, excluding non-prefix related ones
-      const validCommands = Object.keys(commands).filter(cmdName =>
-        !['slashCommands', 'prefixCommands', 'language'].includes(cmdName)
-      );
-      if (validCommands.includes(args[0].toLowerCase())) {
-        return message.channel.send({ embeds: [await helpEmbed(client, args[0].toLowerCase())] });
+  try {
+    // Process the 'help' command
+    if (commandMatches('help')) {
+      await message.channel.sendTyping();
+      // If a subcommand argument is provided, check if it's a valid command
+      if (args[0]) {
+        // Create an array of valid command names, excluding non-prefix related ones
+        const validCommands = Object.keys(commands).filter(cmdName =>
+          !['slashCommands', 'prefixCommands', 'language'].includes(cmdName)
+        );
+        if (validCommands.includes(args[0].toLowerCase())) {
+          return message.channel.send({ embeds: [await helpEmbed(client, args[0].toLowerCase())] });
+        }
       }
+      return message.channel.send({ embeds: [await helpEmbed(client)] });
     }
-    return message.channel.send({ embeds: [await helpEmbed(client)] });
-  }
 
-  // Process the 'motd' command
-  if (commandMatches('motd')) {
-    await message.channel.sendTyping();
-    return message.channel.send({ embeds: [await motdEmbed()] });
-  }
+    // Process the 'motd' command
+    if (commandMatches('motd')) {
+      await message.channel.sendTyping();
+      return message.channel.send({ embeds: [await motdEmbed()] });
+    }
 
-  // Process the 'ip' command
-  if (commandMatches('ip')) {
-    return message.channel.send({ embeds: [await ipEmbed()] });
-  }
+    // Process the 'ip' command
+    if (commandMatches('ip')) {
+      return message.channel.send({ embeds: [await ipEmbed()] });
+    }
 
-  // Process the 'site' command (only if mcserver.site exists)
-  if (commandMatches('site') && mcserver.site) {
-    return message.channel.send({ embeds: [await siteEmbed()] });
-  }
+    // Process the 'site' command (only if mcserver.site exists)
+    if (commandMatches('site') && mcserver.site) {
+      return message.channel.send({ embeds: [await siteEmbed()] });
+    }
 
-  // Process the 'version' command
-  if (commandMatches('version')) {
-    return message.channel.send({ embeds: [await versionEmbed()] });
-  }
+    // Process the 'version' command
+    if (commandMatches('version')) {
+      return message.channel.send({ embeds: [await versionEmbed()] });
+    }
 
-  // Process the 'players' command
-  if (commandMatches('players')) {
-    await message.channel.sendTyping();
-    return message.channel.send({ embeds: [await playerList()] });
-  }
+    // Process the 'players' command
+    if (commandMatches('players')) {
+      await message.channel.sendTyping();
+      return message.channel.send({ embeds: [await playerList()] });
+    }
 
-  // Process the 'status' command
-  if (commandMatches('status')) {
-    await message.channel.sendTyping();
-    try {
+    // Process the 'status' command
+    if (commandMatches('status')) {
+      await message.channel.sendTyping();
       return message.channel.send({ embeds: [await statusEmbed()] });
-    } catch (error) {
-      message.channel.send(cmdSlashTranslation.status.errorReply);
-      logger.error('Command: Error in status prefix command', error);
     }
+  } catch (error) {
+    logger.error('PrefixCommands: Error handling command', error);
+    await message.channel.send(':warning: An error occurred processing your command.').catch(() => {});
   }
 };

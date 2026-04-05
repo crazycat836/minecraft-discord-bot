@@ -17,6 +17,7 @@ export default {
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
       logger.error('Error running help command', error);
+      await interaction.reply({ content: ':warning: An error occurred.', ephemeral: true }).catch(() => {});
     }
   },
 

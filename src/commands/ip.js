@@ -18,6 +18,7 @@ export default {
       await interaction.reply({ embeds: [await ipEmbed()] });
     } catch (error) {
       logger.error('Error executing ip command', error);
+      await interaction.reply({ content: ':warning: An error occurred.', ephemeral: true }).catch(() => {});
     }
   },
 

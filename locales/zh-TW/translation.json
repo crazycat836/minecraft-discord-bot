@@ -220,14 +220,14 @@
       "enableFeature": "**請在配置中啟用 `auto Change Status` 以啟用狀態訊息功能。**",
       "checkingStatusMsg": ":gear: 正在檢查狀態...",
       "checkingStatusCmdMsg": ":arrows_clockwise: 正在檢查狀態和必要信息。",
-      "statusMsgSuccess": ":white_check_mark: **狀態訊息已成功設置在 {channel}。訊息：** {messageLink}。"
+      "statusMsgSuccess": ":white_check_mark: **`{server}` 的狀態訊息已設置在 {channel}。訊息：** {messageLink}。"
     },
     "setsite": {
       "name": "setsite",
       "description": "設定伺服器網站連結。",
       "url": "輸入網站連結 (URL)。",
       "success": ":white_check_mark: **網站連結已更新為：** <{site}>",
-      "invalidUrl": ":warning: **無效的連結格式。**"
+      "invalidUrl": ":warning: **無效的連結格式，請包含協定前綴（例如 `https://example.com`）。**"
     },
     "setname": {
       "name": "setname",
@@ -254,7 +254,8 @@
   "bot-status": {
     "botStatus": {
       "online": "正在與 {playeronline}/{playermax} 位玩家遊玩",
-      "offline": "伺服器離線中"
+      "offline": "伺服器離線中",
+      "notConfigured": "等待設定中..."
     },
     "playerCount": {
       "online": "🟢 {playeronline}/{playermax} 位玩家在線",

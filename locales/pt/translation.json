@@ -224,14 +224,14 @@
       "enableFeature": "**Por favor, habilite `Auto Change Status` na configuração para ativar a funcionalidade de mensagem de status.**",
       "checkingStatusMsg": ":gear: Verificando o status...",
       "checkingStatusCmdMsg": ":arrows_clockwise: Verificando o status e informações necessárias.",
-      "statusMsgSuccess": ":white_check_mark: **Mensagem de status definida com sucesso em {channel}. Mensagem:** {messageLink}."
+      "statusMsgSuccess": ":white_check_mark: **Status de `{server}` definido em {channel}. Mensagem:** {messageLink}."
     },
     "setsite": {
       "name": "setsite",
       "description": "Definir a URL do site do servidor.",
       "url": "Digite a URL do site.",
       "success": ":white_check_mark: **URL do site atualizada para:** <{site}>",
-      "invalidUrl": ":warning: **Formato de URL inválido.**"
+      "invalidUrl": ":warning: **Formato de URL inválido. Inclua o protocolo (ex. `https://example.com`).**"
     },
     "setname": {
       "name": "setname",
@@ -258,7 +258,8 @@
   "bot-status": {
     "botStatus": {
       "online": "Jogando com {playeronline}/{playermax} jogadores",
-      "offline": "O servidor está offline"
+      "offline": "O servidor está offline",
+      "notConfigured": "Aguardando configuração..."
     },
     "playerCount": {
       "online": "🟢 {playeronline}/{playermax} jogadores ativos",

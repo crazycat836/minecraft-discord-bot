@@ -21,11 +21,14 @@ export default async (msg) => {
     // Destructure autoReply trigger settings for convenience
     const { ip, site, status, version } = autoReply;
 
+    // Escape regex metacharacters in trigger words to prevent SyntaxError
+    const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     // Create regular expressions to detect trigger words (with Unicode support)
-    const isIp = new RegExp(`(?<=^|\\P{L})(${ip.triggerWords.join('|')})(?=\\P{L}|$)`, 'iu');
-    const isSite = new RegExp(`(?<=^|\\P{L})(${site.triggerWords.join('|')})(?=\\P{L}|$)`, 'iu');
-    const isStatus = new RegExp(`(?<=^|\\P{L})(${status.triggerWords.join('|')})(?=\\P{L}|$)`, 'iu');
-    const isVersion = new RegExp(`(?<=^|\\P{L})(${version.triggerWords.join('|')})(?=\\P{L}|$)`, 'iu');
+    const isIp = new RegExp(`(?<=^|\\P{L})(${ip.triggerWords.map(escapeRegex).join('|')})(?=\\P{L}|$)`, 'iu');
+    const isSite = new RegExp(`(?<=^|\\P{L})(${site.triggerWords.map(escapeRegex).join('|')})(?=\\P{L}|$)`, 'iu');
+    const isStatus = new RegExp(`(?<=^|\\P{L})(${status.triggerWords.map(escapeRegex).join('|')})(?=\\P{L}|$)`, 'iu');
+    const isVersion = new RegExp(`(?<=^|\\P{L})(${version.triggerWords.map(escapeRegex).join('|')})(?=\\P{L}|$)`, 'iu');
 
     // Reply with IP information if trigger is detected and IP auto-reply is enabled
     if (isIp.test(content) && autoReply.ip.enabled) {

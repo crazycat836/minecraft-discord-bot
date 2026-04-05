@@ -224,14 +224,14 @@
       "enableFeature": "**Включіть `auto Change Status/авто змінення статусу` в конфігу для увімкнення функції повідомлення статусу.**",
       "checkingStatusMsg": ":gear: Перевірка статус...",
       "checkingStatusCmdMsg": ":arrows_clockwise: перевірка статусу та іншої інформації.",
-      "statusMsgSuccess": ":white_check_mark: **Повідомлення статусу установлено у {channel}. Повідомлення:**{messageLink}"
+      "statusMsgSuccess": ":white_check_mark: **Статус `{server}` встановлено у {channel}. Повідомлення:** {messageLink}."
     },
     "setsite": {
       "name": "setsite",
       "description": "Встановити URL веб-сайту сервера.",
       "url": "Введіть URL веб-сайту.",
       "success": ":white_check_mark: **URL веб-сайту оновлено на:** <{site}>",
-      "invalidUrl": ":warning: **Невірний формат URL.**"
+      "invalidUrl": ":warning: **Невірний формат URL. Вкажіть протокол (напр. `https://example.com`).**"
     },
     "setname": {
       "name": "setname",
@@ -258,7 +258,8 @@
   "bot-status": {
     "botStatus": {
       "online": "Грає з {playeronline}/{playermax} гравцями",
-      "offline": "Сервер не в мережі"
+      "offline": "Сервер не в мережі",
+      "notConfigured": "Очікування налаштування..."
     },
     "playerCount": {
       "online": "🟢 {playeronline}/{playermax} гравців онлайн",

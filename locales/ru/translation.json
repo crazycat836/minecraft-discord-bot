@@ -224,14 +224,14 @@
       "enableFeature": "**Пожалуйста включите `auto Change Status/авто Изменения Статуса` в конфиге для включения функции сообщения статуса.**",
       "checkingStatusMsg": ":gear: Проверка статуса...",
       "checkingStatusCmdMsg": ":arrows_clockwise: Проверка статуса и другой инфы.",
-      "statusMsgSuccess": ":white_check_mark: **Статус сообщения успешно установлен в {channel}. Сообщения:**{messageLink}."
+      "statusMsgSuccess": ":white_check_mark: **Статус `{server}` установлен в {channel}. Сообщение:** {messageLink}."
     },
     "setsite": {
       "name": "setsite",
       "description": "Установить URL веб-сайта сервера.",
       "url": "Введите URL веб-сайта.",
       "success": ":white_check_mark: **URL веб-сайта обновлен на:** <{site}>",
-      "invalidUrl": ":warning: **Неверный формат URL.**"
+      "invalidUrl": ":warning: **Неверный формат URL. Укажите протокол (напр. `https://example.com`).**"
     },
     "setname": {
       "name": "setname",
@@ -258,7 +258,8 @@
   "bot-status": {
     "botStatus": {
       "online": "Играет с {playeronline}/{playermax} игроками",
-      "offline": "Сервер не в сети"
+      "offline": "Сервер не в сети",
+      "notConfigured": "Ожидание настройки..."
     },
     "playerCount": {
       "online": "🟢 {playeronline}/{playermax} активных игроков",

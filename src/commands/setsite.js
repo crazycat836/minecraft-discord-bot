@@ -1,15 +1,9 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
-import fs from 'fs/promises';
 import { cmdSlashTranslation } from '../index.js';
 import config from '../../config.js';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import logger from '../utils/logger.js';
 import validator from 'validator';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const dataJsonPath = path.join(__dirname, '..', 'data.json');
+import { readData, writeData } from '../utils/dataStore.js';
 
 const { autoChangeStatus } = config;
 
@@ -40,13 +34,7 @@ export default {
             }
 
             // Read data.json
-            let dataRead;
-            try {
-                const readData = await fs.readFile(dataJsonPath, 'utf8');
-                dataRead = JSON.parse(readData);
-            } catch (e) {
-                dataRead = {};
-            }
+            let dataRead = await readData();
 
             // Initialize serverSettings if not exists
             if (!dataRead.serverSettings) {
@@ -57,7 +45,7 @@ export default {
             dataRead.serverSettings.site = url;
 
             // Write back to data.json
-            await fs.writeFile(dataJsonPath, JSON.stringify(dataRead, null, 2), 'utf8');
+            await writeData(dataRead);
 
             await interaction.editReply({
                 content: cmdSlashTranslation.setsite.success.replace('{site}', url),

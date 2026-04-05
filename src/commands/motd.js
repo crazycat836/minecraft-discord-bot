@@ -21,6 +21,7 @@ export default {
       await interaction.reply({ embeds: [embed] });
     } catch (error) {
       logger.error('Error in motd command', error);
+      await interaction.reply({ content: ':warning: An error occurred.', ephemeral: true }).catch(() => {});
     }
   },
 

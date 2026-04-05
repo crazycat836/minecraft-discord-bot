@@ -1,17 +1,10 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import chalk from 'chalk';
-import fs from 'fs/promises';
 import { statusMessageEdit, consoleLogTranslation, cmdSlashTranslation } from '../index.js';
 import config from '../../config.js';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import isIP from 'validator/lib/isIP.js';
 import logger from '../utils/logger.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-// Generate the absolute path to data.json located in the parent directory of this file
-const dataJsonPath = path.join(__dirname, '..', 'data.json');
+import { readData, writeData } from '../utils/dataStore.js';
 
 const { autoChangeStatus, mcserver } = config;
 
@@ -84,10 +77,11 @@ function isValidHostnameOrIP(input) {
 }
 
 export async function run({ interaction, client }) {
+  let msg;
   try {
     // Defer the reply first to give us time to process
     await interaction.deferReply({ ephemeral: true });
-    
+
     // Check if autoChangeStatus feature is enabled
     if (!autoChangeStatus.enabled) {
       await interaction.editReply({
@@ -97,7 +91,7 @@ export async function run({ interaction, client }) {
     }
 
     // Check if the user has admin permissions or if adminOnly is disabled
-    if (autoChangeStatus.adminOnly && !interaction.member.permissions.has('ADMINISTRATOR')) {
+    if (autoChangeStatus.adminOnly && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
       await interaction.editReply({
         content: cmdSlashTranslation.setstatus.adminOnly,
       });
@@ -110,17 +104,10 @@ export async function run({ interaction, client }) {
       throw new Error(`Channel ${interaction.channelId} not found`);
     }
     // Send a message indicating that status checking is in progress
-    const msg = await channel.send(cmdSlashTranslation.setstatus.checkingStatusCmdMsg);
+    msg = await channel.send(cmdSlashTranslation.setstatus.checkingStatusCmdMsg);
 
-    // Asynchronously read data.json and parse its JSON content
-    let dataRead;
-    try {
-      const readData = await fs.readFile(dataJsonPath, 'utf8');
-      dataRead = JSON.parse(readData);
-    } catch (e) {
-      // Initialize to an empty autoChangeStatus array if parsing fails
-      dataRead = { autoChangeStatus: [] };
-    }
+    // Read data.json
+    let dataRead = await readData();
 
     // Retrieve command options; use default values from mcserver if options are not provided
     const ip = interaction.options.getString('ip') || mcserver.ip;
@@ -164,15 +151,16 @@ export async function run({ interaction, client }) {
     // Call statusMessageEdit to update the status message with the new server data
     await statusMessageEdit(ip, portOption, type, name, msg, isPlayerAvatarEmoji, client);
 
-    // Write the updated data back to data.json asynchronously
-    await fs.writeFile(dataJsonPath, JSON.stringify(dataRead, null, 2), 'utf8');
+    // Write the updated data back to data.json
+    await writeData(dataRead);
 
     // Edit the deferred reply to inform the user of successful status update,
     // including a link to the status message
     await interaction.editReply({
       content: cmdSlashTranslation.setstatus.statusMsgSuccess
         .replace(/\{channel\}/gi, `<#${interaction.channelId}>`)
-        .replace(/\{messageLink\}/gi, `https://discord.com/channels/${msg.guildId}/${interaction.channelId}/${msg.id}`),
+        .replace(/\{messageLink\}/gi, `https://discord.com/channels/${msg.guildId}/${interaction.channelId}/${msg.id}`)
+        .replace(/\{server\}/gi, `${ip}:${portOption} (${type})`),
       flags: MessageFlags.Ephemeral,
     });
 
@@ -184,6 +172,11 @@ export async function run({ interaction, client }) {
       )
     );
   } catch (error) {
+    // Clean up the public message if it was sent but the command failed
+    if (msg) {
+      await msg.delete().catch(() => {});
+    }
+
     // If an error occurs, edit the reply with an error message
     await interaction.editReply({
       content: cmdSlashTranslation.setstatus.errorReply.replace(/\{error\}/gi, error.message),

@@ -17,7 +17,7 @@ export default {
   run: async ({ interaction, client }) => {
     try {
       // Defer reply and mark it as ephemeral (visible only to the user)
-      await interaction.deferReply({ eflags: MessageFlags.Ephemeral });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       // Get bot info embed and reply with it
       const embed = await botInfoEmbed(interaction, client);

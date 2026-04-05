@@ -167,7 +167,7 @@ const motdEmbed = async () => {
   if (!isOnline) {
     return await offlineStatus();
   } else {
-    const replacements = { motd: data.motd.clean };
+    const replacements = { motd: data.motd?.clean ?? data.motd?.raw ?? 'N/A' };
     return new EmbedBuilder()
       .setColor('Green')
       .setThumbnail(getServerIconUrl(conf.ip, conf.port))
@@ -258,7 +258,11 @@ const helpEmbed = async (client, commandName) => {
   if (commandName) {
     // Use Array.find to locate the slash command data
     const slashCmdData = commandsFetch.find((slashCmd) => slashCmd.name === commandName);
-    if (!slashCmdData) return;
+    if (!slashCmdData) {
+      return new EmbedBuilder()
+        .setColor('Red')
+        .setDescription(`:warning: Command \`${commandName}\` not found.`);
+    }
     return new EmbedBuilder()
       .setAuthor({
         name: client.user.username,
@@ -276,7 +280,7 @@ const helpEmbed = async (client, commandName) => {
           cmdDescription: slashCmdData.description,
           prefixCmd: commands.prefixCommands.prefix + slashCmdData.name,
           prefixCmdAlias:
-            commands[slashCmdData.name].alias.length
+            commands[slashCmdData.name]?.alias?.length
               ? `\`${commands[slashCmdData.name].alias.join('`, `')}\``
               : '',
         })
@@ -328,10 +332,11 @@ const botInfoEmbed = async (interaction, client) => {
   const cpuUsage = (os.loadavg()[0] / os.cpus().length).toFixed(2);
   const memoryUsage = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
   const nodeVersion = process.version;
-  const uptimeSeconds = Math.floor(process.uptime());
-  const uptimeMinutes = Math.floor(uptimeSeconds / 60) % 60;
-  const uptimeHours = Math.floor(uptimeMinutes / 60) % 24;
-  const uptimeDays = Math.floor(uptimeHours / 24);
+  const totalUptimeSeconds = Math.floor(process.uptime());
+  const uptimeSeconds = totalUptimeSeconds % 60;
+  const uptimeMinutes = Math.floor(totalUptimeSeconds / 60) % 60;
+  const uptimeHours = Math.floor(totalUptimeSeconds / 3600) % 24;
+  const uptimeDays = Math.floor(totalUptimeSeconds / 86400);
   return new EmbedBuilder()
     .setAuthor({
       name: client.user.tag,
