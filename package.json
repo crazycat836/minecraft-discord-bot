@@ -35,7 +35,7 @@
   "homepage": "https://github.com/crazycat836/minecraft-discord-bot#readme",
   "dependencies": {
     "chalk": "^6.0.0",
-    "commandkit": "^0.1.10",
+    "commandkit": "^1.2.1",
     "discord.js": "^14.27.0",
     "dotenv": "^17.4.2",
     "i18next": "^26.3.6",
