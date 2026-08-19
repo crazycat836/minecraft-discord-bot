@@ -4,7 +4,7 @@ import { statusMessageEdit, consoleLogTranslation, cmdSlashTranslation } from '.
 import config from '../../config.js';
 import isIP from 'validator/lib/isIP.js';
 import logger from '../utils/logger.js';
-import { readData, writeData } from '../utils/dataStore.js';
+import { readData, updateData, getSite } from '../utils/dataStore.js';
 
 const { autoChangeStatus, mcserver } = config;
 
@@ -78,6 +78,7 @@ function isValidHostnameOrIP(input) {
 
 export async function run({ interaction, client }) {
   let msg;
+  let createdNewMessage = false;
   try {
     // Defer the reply first to give us time to process
     await interaction.deferReply({ ephemeral: true });
@@ -103,11 +104,25 @@ export async function run({ interaction, client }) {
     if (!channel) {
       throw new Error(`Channel ${interaction.channelId} not found`);
     }
-    // Send a message indicating that status checking is in progress
-    msg = await channel.send(cmdSlashTranslation.setstatus.checkingStatusCmdMsg);
+    // Read data.json first so the existing status message for this channel can be reused
+    const dataRead = await readData();
 
-    // Read data.json
-    let dataRead = await readData();
+    // Reuse the status message already tracked for this channel so re-running the command
+    // edits it in place instead of leaving an orphaned message behind.
+    const existingRecord = Array.isArray(dataRead.autoChangeStatus)
+      ? dataRead.autoChangeStatus.find((entry) => entry.channelId === interaction.channelId)
+      : undefined;
+    if (existingRecord?.messageId) {
+      msg = await channel.messages.fetch(existingRecord.messageId).catch(() => null);
+    }
+
+    if (msg) {
+      logger.debug(`SetStatus: Reusing existing status message ${msg.id} in channel ${interaction.channelId}`);
+    } else {
+      // No usable message tracked for this channel (first run, or it was deleted)
+      msg = await channel.send(cmdSlashTranslation.setstatus.checkingStatusCmdMsg);
+      createdNewMessage = true;
+    }
 
     // Retrieve command options; use default values from mcserver if options are not provided
     const ip = interaction.options.getString('ip') || mcserver.ip;
@@ -127,32 +142,40 @@ export async function run({ interaction, client }) {
     const isPlayerAvatarEmoji =
       playerAvatarEmoji && hasManageChannels && autoChangeStatus.playerAvatarEmoji && type === 'java';
 
-    // Ensure dataRead.autoChangeStatus is an array
-    if (!Array.isArray(dataRead.autoChangeStatus)) {
-      dataRead.autoChangeStatus = [];
-    }
-
-    // Remove any existing status record for the current channel
-    dataRead.autoChangeStatus = dataRead.autoChangeStatus.filter(
-      (entry) => entry.channelId !== interaction.channelId
-    );
-
-    // Add a new auto status update record
-    dataRead.autoChangeStatus.push({
+    // Call statusMessageEdit to update the status message with the new server data
+    await statusMessageEdit({
       ip,
       port: portOption,
       type,
       name,
-      channelId: interaction.channelId,
-      messageId: msg.id,
+      site: getSite(dataRead),
+      message: msg,
       isPlayerAvatarEmoji,
+      client
     });
 
-    // Call statusMessageEdit to update the status message with the new server data
-    await statusMessageEdit(ip, portOption, type, name, msg, isPlayerAvatarEmoji, client);
+    // Persist the record with a fresh read-modify-write, so anything written while the
+    // status message was being fetched above is not overwritten with a stale copy.
+    await updateData((data) => {
+      if (!Array.isArray(data.autoChangeStatus)) {
+        data.autoChangeStatus = [];
+      }
 
-    // Write the updated data back to data.json
-    await writeData(dataRead);
+      // Replace any existing status record for the current channel
+      data.autoChangeStatus = data.autoChangeStatus.filter(
+        (entry) => entry.channelId !== interaction.channelId
+      );
+
+      data.autoChangeStatus.push({
+        ip,
+        port: portOption,
+        type,
+        name,
+        channelId: interaction.channelId,
+        messageId: msg.id,
+        isPlayerAvatarEmoji,
+      });
+    });
 
     // Edit the deferred reply to inform the user of successful status update,
     // including a link to the status message
@@ -172,8 +195,9 @@ export async function run({ interaction, client }) {
       )
     );
   } catch (error) {
-    // Clean up the public message if it was sent but the command failed
-    if (msg) {
+    // Clean up the public message only if this run created it; deleting a reused
+    // message would also wipe the stored config on the next autoChangeStatus cycle.
+    if (createdNewMessage) {
       await msg.delete().catch(() => {});
     }
 

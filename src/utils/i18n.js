@@ -89,7 +89,11 @@ i18next.init({
   resources: resources,
   debug: false,
   interpolation: {
-    escapeValue: false // React does not need to escape values
+    escapeValue: false, // values come from local locale files, not user input
+    // Locale files use single-brace placeholders such as {playeronline};
+    // i18next defaults to {{ }}, so without this nothing gets interpolated.
+    prefix: '{',
+    suffix: '}'
   },
   returnEmptyString: false,
   returnNull: false,

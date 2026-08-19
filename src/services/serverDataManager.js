@@ -1,6 +1,10 @@
 import { statusBedrock, statusJava } from 'node-mcstatus';
 import logger from '../utils/logger.js';
 
+// Java and Bedrock report the version under different fields of the mcstatus response
+const readVersion = (data, type) =>
+  (type === 'bedrock' ? data?.version?.name : data?.version?.name_clean) ?? 'Unknown';
+
 /**
  * ServerDataManager - Centralized management of Minecraft server status data
  * Implements request merging and subscription mechanism
@@ -113,7 +117,8 @@ class ServerDataManager {
         const result = {
           data,
           isOnline,
-          playerList
+          playerList,
+          version: readVersion(data, config.mcserver.type)
         };
 
         // Notify subscribers
@@ -146,6 +151,7 @@ class ServerDataManager {
             data: null,
             isOnline: false,
             playerList: { online: 0, max: 0, list: [] },
+            version: 'Unknown',
             error: error.message || 'Unknown error' // Pass error message to caller
           };
 
@@ -164,6 +170,7 @@ class ServerDataManager {
       data: null,
       isOnline: false,
       playerList: { online: 0, max: 0, list: [] },
+      version: 'Unknown',
       error: 'Max retries exceeded' // Pass error message
     };
 

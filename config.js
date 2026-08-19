@@ -18,7 +18,6 @@ export default {
     port: 25565,
     type: 'java',
     name: 'Minecraft Server',
-    version: 'Unknown',
     site: '',
   },
   settings: {
@@ -27,6 +26,7 @@ export default {
     logging: {
       timezone: process.env.TIMEZONE || 'Asia/Taipei',
       inviteLink: process.env.INVITE_LINK === 'false' ? false : true,
+      serverInfo: process.env.SERVER_INFO_LOG === 'false' ? false : true,
     },
   },
   autoReply: {

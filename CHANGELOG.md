@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-08-19
+
+### Fixed
+- `/version` and `/status` always reported the Minecraft version as `Unknown`. The version is now read from the live server status on every request instead of a stored value that was never written
+- Locale placeholders were never interpolated: the locale files use `{name}` while i18next defaults to `{{name}}`. The player count channel showed `🟢 0/20` from a hardcoded fallback instead of the localized `🟢 0/20 players online`
+- A transient Discord API failure (network blip, missing permission, rate limit) deleted the stored server configuration. Records are now dropped only when Discord confirms the channel or message no longer exists
+- Re-running `/setstatus` in a channel posted a new status message and abandoned the previous one, leaving an embed that never updated again. It now edits the existing message in place
+- Concurrent writes to `data.json` could silently overwrite each other. All writes are serialized through `updateData()`
+- `botStatusUpdate` passed `undefined` as the presence status when no server was configured, because `presence.status` has no `idle` key
+- The startup server info log never ran: it checked `settings.logging.serverInfo`, a key that did not exist in `config.js`. Added as `SERVER_INFO_LOG`, enabled by default
+- The container could not create `/app/logs`, because `WORKDIR /app` creates the directory as root while the process runs as `nodejs`
+- `npm ci` in the Dockerfile could not work from a clean clone, because `.gitignore` excluded `package-lock.json`
+- The `config.js` entry in `.gitignore` carried a trailing comment, which is treated as part of the pattern, so the rule never matched anything
+
+### Changed
+- `getServerConfig()` returns `null` whenever there is no server worth probing, including a record with no address. Previously two call sites substituted a config with an empty IP, and one of them called the status API with an empty host
+- The version string is resolved once in `ServerDataManager` and travels with the probe result, instead of each caller deciding between the Java and Bedrock response fields
+- `statusMessageEdit()` takes an options object and receives `site` from its caller instead of re-reading `data.json` on every update cycle
+- `/version` defers its reply, since the embed now probes the server
+- Upgraded discord.js, dotenv and validator; upgraded i18next and chalk across a major version
+- `commandkit` intentionally held at 0.1.10: 1.x requires Node >= 24 and replaces the constructor API with a CLI-driven file-based router, which is a rewrite rather than an upgrade
+
+### Removed
+- `config.mcserver.version` and its startup check. The value was hardcoded to `Unknown`, so the check could never fail, and the version is now read live
+- Unused dependencies: `json5`, `react-i18next`, `i18next-fs-backend`, `i18next-http-backend`, `i18next-browser-languagedetector`
+
+## [1.2.3] - 2026-04-05
+
+### Fixed
+- Bot presence could get stuck showing offline, because an unhandled rejection in the scheduled update was never caught
+- `setstatus` left its public message behind when the command failed
+- `setsite` reported an unhelpful error for URLs missing a protocol
+- `setname` could exceed the Discord name length limit
+- `info` command ignored its ephemeral flag due to a typo (`eflags`)
+- Uptime in the info embed always reported 0 hours and 0 days
+- `statusMessageEdit` passed unresolved promises to `message.edit()` for the offline and error embeds
+- `helpEmbed` returned `undefined` instead of an embed when a command was not found
+- Presence status validation only checked one of the two configured values
+- `getPlayersListWithEmoji` returned nothing when its error path was taken
+- `help`, `ip`, `motd`, `site` and `version` gave no reply when they threw
+- `0console-log` printed `undefined` for a single-line MOTD
+- Auto-reply threw a `SyntaxError` when a trigger word contained a regex metacharacter
+- `motdEmbed` threw when the server reported no MOTD
+
+### Changed
+- Shared data access extracted into `src/utils/dataStore.js`
+- `PermissionFlagsBits` used in place of the deprecated permission strings
+- Docker uses `tini` as the entrypoint for signal handling and zombie reaping
+
+## [1.2.2] - 2026-01-14
+
+### Changed
+- Removed redundant feature toggle and command alias ENV declarations from the Dockerfile, keeping bot, language and command prefix settings
+
+## [1.2.1] - 2026-01-14
+
+### Added
+- "Not Configured" player count status, to distinguish an unconfigured server from a connection error
+- `notConfigured` translation key across all locales
+
+### Changed
+- Upgraded dotenv, i18next and react-i18next
+- Removed `cross-env`, redundant for Docker based workflows
+- Aligned all translations with the zh-TW master file
+
+### Fixed
+- Russian translation for the offline status
+- `ReferenceError` for `statusName` in the player count module
+- Removed the obsolete `version` attribute from `docker-compose.example.yml`
+
 ## [1.2.0] - 2026-01-13
 
 ### Added

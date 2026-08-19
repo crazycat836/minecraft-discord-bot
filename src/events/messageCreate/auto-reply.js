@@ -15,6 +15,10 @@ export default async (msg) => {
 
     // Get dynamic config
     const conf = await getServerConfig();
+    if (!conf) {
+      logger.debug('AutoReply: No server configured in data.json, skipping');
+      return;
+    }
     const { mcserver } = conf;
 
     const { content } = msg;
@@ -47,26 +51,30 @@ export default async (msg) => {
         })
       );
     }
+    // Both of the replies below need live server data, so probe once per message
+    const wantsVersion = isVersion.test(content) && autoReply.version.enabled;
+    const wantsStatus = isStatus.test(content) && autoReply.status.enabled;
+    let serverData = null;
+    if (wantsVersion || wantsStatus) {
+      await msg.channel.sendTyping();
+      serverData = await getServerDataAndPlayerList(mcserver, true);
+    }
+
     // Reply with version information if trigger is detected and version auto-reply is enabled
-    if (isVersion.test(content) && autoReply.version.enabled) {
+    if (wantsVersion) {
       await msg.reply(
         languageService.getText('auto-reply', 'version.replyText', {
-          version: mcserver.version
+          version: serverData.version
         })
       );
     }
     // Reply with server status information if trigger is detected and status auto-reply is enabled
-    if (isStatus.test(content) && autoReply.status.enabled) {
-      // Indicate that the bot is typing
-      await msg.channel.sendTyping();
-      // Retrieve server data and online status (getServerDataAndPlayerList uses getServerConfig internally)
-      const { data, isOnline } = await getServerDataAndPlayerList();
-
-      if (isOnline) {
+    if (wantsStatus) {
+      if (serverData.isOnline) {
         await msg.reply(
           languageService.getText('auto-reply', 'status.onlineReply', {
-            playerOnline: data.players.online,
-            playerMax: data.players.max
+            playerOnline: serverData.data.players.online,
+            playerMax: serverData.data.players.max
           })
         );
       } else {

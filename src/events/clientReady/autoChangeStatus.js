@@ -1,10 +1,18 @@
 import chalk from 'chalk';
+import { RESTJSONErrorCodes } from 'discord.js';
 import config from '../../../config.js';
 import {
   statusMessageEdit,
 } from '../../index.js';
 import logger from '../../utils/logger.js';
-import { readData, writeData } from '../../utils/dataStore.js';
+import { readData, updateData, getSite } from '../../utils/dataStore.js';
+
+// Only a confirmed "it no longer exists" justifies dropping a record — any other
+// failure is transient and must not wipe the config.
+const GONE_ERROR_CODES = new Set([
+  RESTJSONErrorCodes.UnknownChannel,
+  RESTJSONErrorCodes.UnknownMessage
+]);
 
 export default async (client) => {
   logger.info('AutoChangeStatus: Initializing module');
@@ -51,74 +59,59 @@ export default async (client) => {
 
       logger.debug(`AutoChangeStatus: Processing ${dataRead.autoChangeStatus.length} status messages`);
 
-      // Filter out invalid records and process valid ones
-      const validRecords = [];
+      // Track only the records Discord confirms are gone; everything else stays
+      const goneMessageIds = new Set();
 
       for (const record of dataRead.autoChangeStatus) {
+        const label = `${record.ip}:${record.port} in channel ${record.channelId}`;
         try {
           logger.debug(`AutoChangeStatus: Processing status message for server ${record.ip}:${record.port} (${record.type || 'java'}) in channel ${record.channelId}`);
 
-          // Fetch the channel where the status message is located
-          const channel = await client.channels.fetch(record.channelId).catch(error => {
-            logger.error(`Failed to fetch channel ${record.channelId}: ${error.message}`);
-            return null;
-          });
-
-          if (!channel) {
-            logger.warn(`AutoChangeStatus: Channel ${record.channelId} not found — removing stale record for ${record.ip}:${record.port}`);
-            continue;
-          }
-
-          // Fetch the status message itself
-          const message = await channel.messages.fetch(record.messageId).catch(error => {
-            logger.error(`Failed to fetch message ${record.messageId}: ${error.message}`);
-            return null;
-          });
-
-          if (!message) {
-            logger.warn(`AutoChangeStatus: Message ${record.messageId} in channel ${record.channelId} not found — removing stale record for ${record.ip}:${record.port}`);
-            continue;
-          }
+          const channel = await client.channels.fetch(record.channelId);
+          const message = await channel.messages.fetch(record.messageId);
 
           logger.debug(`AutoChangeStatus: Updating status for server ${record.ip}:${record.port} (${record.type || 'java'})`);
 
           // Update the status message content using the shared utility function
-          await statusMessageEdit(
-            record.ip,
-            record.port,
-            record.type || 'java',
-            dataRead.serverSettings?.name || record.name || record.ip,
+          await statusMessageEdit({
+            ip: record.ip,
+            port: record.port,
+            type: record.type || 'java',
+            name: dataRead.serverSettings?.name || record.name || record.ip,
+            site: getSite(dataRead),
             message,
-            record.isPlayerAvatarEmoji,
+            isPlayerAvatarEmoji: record.isPlayerAvatarEmoji,
             client
-          );
+          });
 
           logger.debug(`AutoChangeStatus: Status updated for server ${record.ip}:${record.port}`);
-          validRecords.push(record);
         } catch (error) {
-          logger.error(`Error processing record: ${error.message}`, error);
+          if (GONE_ERROR_CODES.has(error.code)) {
+            logger.warn(`AutoChangeStatus: ${label} no longer exists — removing record`);
+            goneMessageIds.add(record.messageId);
+            continue;
+          }
+          // Transient failure (network, permissions, rate limit): keep the record so a
+          // temporary error cannot wipe the server configuration.
+          logger.error(`AutoChangeStatus: Failed to update ${label}, keeping record: ${error.message}`);
         }
       }
 
-      // Update data.json with strictly valid records (removes stale messages)
-      try {
-        const removedCount = dataRead.autoChangeStatus.length - validRecords.length;
-        if (validRecords.length === 0) {
-          dataRead.autoChangeStatus = [];
-          logger.warn('AutoChangeStatus: All records were invalid or removed, clearing autoChangeStatus array');
-        } else {
-          dataRead.autoChangeStatus = validRecords;
-          if (removedCount > 0) {
-            logger.warn(`AutoChangeStatus: Removed ${removedCount} stale record(s), ${validRecords.length} remaining`);
-          } else {
-            logger.debug(`AutoChangeStatus: ${validRecords.length} valid records updated`);
-          }
+      // Only write when a record was actually removed, and filter the freshly read data
+      // so a /setstatus that landed during the loop above is not overwritten
+      if (goneMessageIds.size > 0) {
+        logger.warn(`AutoChangeStatus: Removing ${goneMessageIds.size} record(s) whose message no longer exists`);
+        try {
+          await updateData((data) => {
+            data.autoChangeStatus = (data.autoChangeStatus ?? []).filter(
+              (record) => !goneMessageIds.has(record.messageId)
+            );
+          });
+        } catch (error) {
+          logger.error(`Error writing to data.json: ${error.message}`, error);
         }
-
-        await writeData(dataRead);
-        logger.debug('AutoChangeStatus: data.json updated with valid records');
-      } catch (error) {
-        logger.error(`Error writing to data.json: ${error.message}`, error);
+      } else {
+        logger.debug(`AutoChangeStatus: ${dataRead.autoChangeStatus.length} records updated`);
       }
     } catch (error) {
       logger.error(`Error in autoChangeStatus process: ${error.message}`, error);
@@ -152,8 +145,11 @@ export default async (client) => {
     logger.info('AutoChangeStatus: Starting initialization');
     const data = await readData();
     if (!data.autoChangeStatus) {
-      data.autoChangeStatus = [];
-      await writeData(data);
+      await updateData((fresh) => {
+        if (!fresh.autoChangeStatus) {
+          fresh.autoChangeStatus = [];
+        }
+      });
     }
 
     // Run immediately and then on schedule

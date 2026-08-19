@@ -3,7 +3,6 @@
 import 'dotenv/config';
 
 import { Client, IntentsBitField, EmbedBuilder } from 'discord.js';
-import { statusBedrock, statusJava } from 'node-mcstatus';
 import config from '../config.js';
 import chalk from 'chalk';
 import { CommandKit } from 'commandkit';
@@ -11,10 +10,10 @@ import process from 'node:process';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import serverDataManager from './services/serverDataManager.js';
-import { readData, getServerConfig } from './utils/dataStore.js';
+import { getServerConfig } from './utils/dataStore.js';
 
 // Import the logger and translation systems
-import logger, { LogLevel } from './utils/logger.js';
+import logger from './utils/logger.js';
 import { configureLogger } from './utils/loggerConfig.js';
 import languageService from './services/languageService.js';
 
@@ -128,9 +127,6 @@ const cmdSlashTranslation = languageService.getTranslation('slash-cmds');
 
   // Check if name is missing or empty
   checkError(!config.mcserver.name || config.mcserver.name === '', consoleLogTranslation.checkErrorConfig.mcName);
-
-  // Check if version is missing or empty
-  checkError(!config.mcserver.version || config.mcserver.version === '', consoleLogTranslation.checkErrorConfig.mcVersion);
 
   checkError(
     config.playerCountCH.enabled && (!config.settings || !config.settings.guildID),
@@ -264,7 +260,13 @@ const getServerDataAndPlayerList = async (input = null, dataOnlyArg = false) => 
       logger.debug(`ServerData: Using provided config override: ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
     } else {
       // Default: Read data.json to get the latest server configuration
-      serverConfig = (await getServerConfig()) || { ...config };
+      serverConfig = await getServerConfig();
+      if (!serverConfig) {
+        logger.debug('ServerData: No server configured in data.json, skipping probe');
+        return dataOnly
+          ? { data: null, isOnline: false, version: 'Unknown' }
+          : { data: null, playerListArray: [], isOnline: false, version: 'Unknown' };
+      }
       logger.debug(`ServerData: Using server config: ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
     }
 
@@ -278,7 +280,8 @@ const getServerDataAndPlayerList = async (input = null, dataOnlyArg = false) => 
     if (dataOnly) {
       return {
         data: result.data,
-        isOnline: result.isOnline
+        isOnline: result.isOnline,
+        version: result.version
       };
     }
 
@@ -288,7 +291,8 @@ const getServerDataAndPlayerList = async (input = null, dataOnlyArg = false) => 
         return {
           data: result.data,
           playerListArray,
-          isOnline: result.isOnline
+          isOnline: result.isOnline,
+          version: result.version
         };
       } catch (playerListError) {
         logger.error('ServerData: Error getting player list', playerListError);
@@ -296,14 +300,16 @@ const getServerDataAndPlayerList = async (input = null, dataOnlyArg = false) => 
         return {
           data: result.data,
           playerListArray: [],
-          isOnline: result.isOnline
+          isOnline: result.isOnline,
+          version: result.version
         };
       }
     } else {
       return {
         data: result.data,
         playerListArray: [],
-        isOnline: false
+        isOnline: false,
+        version: result.version
       };
     }
   } catch (error) {
@@ -312,6 +318,7 @@ const getServerDataAndPlayerList = async (input = null, dataOnlyArg = false) => 
       data: null,
       playerListArray: [],
       isOnline: false,
+      version: 'Unknown',
       error: error.message // Propagate error for UI display
     };
   }
@@ -379,12 +386,8 @@ const getPlayersListWithEmoji = async (playerListRaw, client) => {
   }
 };
 
-const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEmoji, client) => {
+const statusMessageEdit = async ({ ip, port, type, name, site, message, isPlayerAvatarEmoji, client }) => {
   try {
-    // Get site from data.json serverSettings
-    const dataJson = await readData();
-    const site = dataJson.serverSettings?.site || config.mcserver.site || '';
-
     // Create a temporary config object to get data for a specific server
     const tempConfig = {
       ...config,
@@ -410,7 +413,7 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
       return;
     }
 
-    const { data, isOnline } = result;
+    const { data, isOnline, version: versionStr } = result;
 
     const ipBedrock = `IP: \`${ip}\`\nPort: \`${port}\``;
     const portNumber = port === 25565 ? '' : `:\`${port}\``;
@@ -430,7 +433,6 @@ const statusMessageEdit = async (ip, port, type, name, message, isPlayerAvatarEm
       }
 
       function editDescriptionFields(description) {
-        const versionStr = type === 'java' ? data.version.name_clean : data.version.name;
         const siteText = site
           ? embedTranslation.onlineEmbed.siteText.replace(/\{site\}/gi, site)
           : '';

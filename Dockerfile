@@ -11,7 +11,7 @@ COPY package*.json ./
 
 # Install dependencies with cache mount
 RUN --mount=type=cache,target=/root/.npm \
-    npm install
+    npm ci --omit=dev --no-audit --no-fund
 
 # Copy only necessary files
 COPY src ./src
@@ -26,8 +26,10 @@ RUN apk add --no-cache tini && \
     addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs
 
-# Set working directory and switch to non-root user
+# Set working directory, hand /app to the runtime user, then drop privileges.
+# WORKDIR creates /app as root; without this chown the app cannot create /app/logs.
 WORKDIR /app
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app
 USER nodejs
 
 # Copy built files from builder stage

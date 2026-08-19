@@ -87,7 +87,6 @@
       "botStatusActivity": "無效的機器人活動選項。應為 'Playing'、'Listening'、'Watching' 或 'Competing'。",
       "mcType": "無效的 Minecraft 伺服器類型。應為 \"java\" 或 \"bedrock\"。",
       "mcName": "未指定 Minecraft 伺服器的名稱。",
-      "mcVersion": "未指定 Minecraft 伺服器的版本。",
       "guildID": "未指定伺服器/公會 ID 或無效。",
       "timeZone": "配置文件中指定的時區無效。",
       "slashCmdName": "為 \"{cmdName}\" 指令提供的名稱 \"{givenCmdName}\" 無效。\n請僅使用小寫、大寫、標題大小寫字母、數字、下劃線和連字符。"

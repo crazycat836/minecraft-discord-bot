@@ -1,18 +1,29 @@
-import { EmbedBuilder, codeBlock } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import config from '../config.js';
 import { embedTranslation, getServerDataAndPlayerList, getServerConfig } from './index.js';
 import process from 'node:process';
 import os from 'os';
 import logger from './utils/logger.js';
 
-const { mcserver, commands } = config;
+const { commands } = config;
 
-// Helper to get dynamic config from data.json
+// Used when data.json has no server configured, or reading it failed
+const NOT_CONFIGURED = {
+  ip: 'Not Configured',
+  port: '',
+  fullIp: 'Not Configured',
+  name: 'Minecraft Server',
+  site: '',
+  type: 'java',
+};
+
 // Helper to get dynamic config from data.json via index.js helper
 const getDynamicConfig = async () => {
   try {
     const conf = await getServerConfig();
-    const { ip, port, type, name, site, version } = conf.mcserver;
+    if (!conf) return { ...NOT_CONFIGURED };
+
+    const { ip, port, type, name, site } = conf.mcserver;
     const portStr = port === 25565 ? '' : `:${port}`;
 
     // Construct fullIp logic matching previous logic
@@ -24,20 +35,11 @@ const getDynamicConfig = async () => {
       fullIp,
       name,
       site,
-      version,
       type
     };
   } catch (error) {
     logger.warn('Error fetching dynamic config:', error);
-    return {
-      ip: 'Not Configured',
-      port: '',
-      fullIp: 'Not Configured',
-      name: 'Minecraft Server',
-      site: '',
-      version: 'Unknown',
-      type: 'java'
-    };
+    return { ...NOT_CONFIGURED };
   }
 };
 
@@ -84,12 +86,17 @@ const siteEmbed = async () => {
 // Embed for version commands
 const versionEmbed = async () => {
   const conf = await getDynamicConfig();
+  // Probe the server so the reported version is the current one, not a stored value
+  const { isOnline, version } = await getServerDataAndPlayerList(conf, true);
+  if (!isOnline) {
+    return await offlineStatus();
+  }
   return new EmbedBuilder()
     .setColor('Aqua')
     .setThumbnail(getServerIconUrl(conf.ip, conf.port))
     .setAuthor({ name: conf.name })
-    .setTitle(replacePlaceholders(embedTranslation.version.title, { version: conf.version }))
-    .setDescription(replacePlaceholders(embedTranslation.version.description, { version: conf.version }));
+    .setTitle(replacePlaceholders(embedTranslation.version.title, { version }))
+    .setDescription(replacePlaceholders(embedTranslation.version.description, { version }));
 };
 
 // Embed for ip commands
@@ -206,14 +213,14 @@ const statusEmbed = async (result) => {
   if (!result) {
     // If result is not provided, get server data
     const serverData = await getServerDataAndPlayerList();
-    return serverData.isOnline ? await OnlineEmbed(serverData.data, serverData.playerListArray) : await offlineStatus();
+    return serverData.isOnline ? await OnlineEmbed(serverData.data, serverData.playerListArray, serverData.version) : await offlineStatus();
   }
 
-  return result.isOnline ? await OnlineEmbed(result.data, result.playerListArray) : await offlineStatus();
+  return result.isOnline ? await OnlineEmbed(result.data, result.playerListArray, result.version) : await offlineStatus();
 };
 
 // Online embed for status commands
-const OnlineEmbed = async (data, playerlist) => {
+const OnlineEmbed = async (data, playerlist, version = 'Unknown') => {
   const conf = await getDynamicConfig();
   const ipStr = getIpString(conf);
   try {
@@ -226,7 +233,7 @@ const OnlineEmbed = async (data, playerlist) => {
         .trim()
         .replace(/\{ip\}/gi, ipStr)
         .replace(/\{motd\}/gi, data.motd.clean)
-        .replace(/\{version\}/gi, conf.version)
+        .replace(/\{version\}/gi, version)
         .replace(/\{siteText\}/gi, siteText);
     };
 

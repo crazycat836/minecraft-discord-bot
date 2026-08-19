@@ -15,10 +15,12 @@ export default {
   // Run function to execute the command
   run: async ({ interaction }) => {
     try {
-      await interaction.reply({ embeds: [await versionEmbed()] });
+      // versionEmbed probes the server, which can exceed Discord's 3s ack window
+      await interaction.deferReply();
+      await interaction.editReply({ embeds: [await versionEmbed()] });
     } catch (error) {
       logger.error('Error executing version command', error);
-      await interaction.reply({ content: ':warning: An error occurred.', ephemeral: true }).catch(() => {});
+      await interaction.editReply({ content: ':warning: An error occurred.' }).catch(() => {});
     }
   },
 

@@ -14,7 +14,6 @@ npm-debug.log*
 
 # Dependencies
 node_modules/
-package-lock.json
 
 # Runtime data
 pids
@@ -40,7 +39,6 @@ cursor.json
 
 # Private configuration files
 release_notes.md
-config.js  # 包含敏感信息的配置文件
 
 # Runtime data files
 src/data.json 

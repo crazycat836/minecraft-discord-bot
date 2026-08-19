@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { cmdSlashTranslation } from '../index.js';
 import logger from '../utils/logger.js';
-import { readData, writeData } from '../utils/dataStore.js';
+import { setServerSetting } from '../utils/dataStore.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -22,19 +22,8 @@ export default {
 
             const name = interaction.options.getString('name');
 
-            // Read data.json
-            let dataRead = await readData();
-
-            // Initialize serverSettings if not exists
-            if (!dataRead.serverSettings) {
-                dataRead.serverSettings = {};
-            }
-
             // Update name
-            dataRead.serverSettings.name = name;
-
-            // Write back to data.json
-            await writeData(dataRead);
+            await setServerSetting('name', name);
 
             await interaction.editReply({
                 content: cmdSlashTranslation.setname.success.replace('{name}', name),

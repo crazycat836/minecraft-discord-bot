@@ -53,8 +53,9 @@ export async function readData() {
 
 /**
  * Safely writes data to data.json with pretty-printing.
+ * Module-private on purpose: every caller goes through updateData so writes stay serialized.
  */
-export async function writeData(data) {
+async function writeData(data) {
   try {
     await fsPromises.writeFile(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
@@ -63,27 +64,57 @@ export async function writeData(data) {
   }
 }
 
+// Serializes read-modify-write cycles. Without this, two callers can each read
+// data.json, then write back their own stale copy and silently drop the other's change.
+let writeQueue = Promise.resolve();
+
 /**
  * Atomic read-modify-write. The updater function receives the current data
  * and should return the modified data (or mutate in place).
+ * Concurrent calls are queued, so each updater sees the previous one's result.
  */
 export async function updateData(updater) {
-  const data = await readData();
-  const updated = await updater(data);
-  const toWrite = updated !== undefined ? updated : data;
-  await writeData(toWrite);
-  return toWrite;
+  const run = writeQueue.then(async () => {
+    const data = await readData();
+    const updated = await updater(data);
+    const toWrite = updated !== undefined ? updated : data;
+    await writeData(toWrite);
+    return toWrite;
+  });
+  // Keep the queue running even if this update throws, without retaining the written data
+  writeQueue = run.then(() => {}, () => {});
+  return run;
+}
+
+/**
+ * Sets a single key on data.json's serverSettings, creating the object if needed.
+ */
+export async function setServerSetting(key, value) {
+  await updateData((data) => {
+    if (!data.serverSettings) {
+      data.serverSettings = {};
+    }
+    data.serverSettings[key] = value;
+  });
+}
+
+/**
+ * Resolves the website to show, from data.json with a fall back to config.js.
+ */
+export function getSite(dataJson) {
+  return dataJson.serverSettings?.site || config.mcserver.site || '';
 }
 
 /**
  * Builds a server config by merging data.json's autoChangeStatus[0] with config.js defaults.
- * Returns null if no server is configured.
+ * Returns null when there is no server worth probing — either no record at all, or a
+ * record with no address. Callers only ever have to handle "null means not configured".
  */
 export async function getServerConfig() {
   const dataJson = await readData();
+  const record = dataJson.autoChangeStatus?.[0];
 
-  if (dataJson.autoChangeStatus?.length > 0) {
-    const record = dataJson.autoChangeStatus[0];
+  if (record?.ip) {
     const settings = dataJson.serverSettings || {};
 
     return {
@@ -93,9 +124,8 @@ export async function getServerConfig() {
         ip: record.ip,
         port: record.port,
         type: record.type || 'java',
-        name: settings.name || record.name || record.ip || config.mcserver.name || 'Minecraft Server',
-        site: settings.site || config.mcserver.site || '',
-        version: record.version || config.mcserver.version || 'Unknown',
+        name: settings.name || record.name || config.mcserver.name || 'Minecraft Server',
+        site: getSite(dataJson),
       }
     };
   }
@@ -103,4 +133,4 @@ export async function getServerConfig() {
   return null;
 }
 
-export default { getDataPath, readData, writeData, updateData, getServerConfig };
+export default { getDataPath, readData, updateData, setServerSetting, getSite, getServerConfig };

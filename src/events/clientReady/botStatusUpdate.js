@@ -29,7 +29,7 @@ export default async (client) => {
       if (!serverConfig) {
         logger.debug('BotStatus: No server configured in data.json (autoChangeStatus is empty). Skipping status update.');
         await client.user.setPresence({
-          status: presence.status.idle,
+          status: 'idle',
           activities: [{ name: i18n.getText('bot-status', 'botStatus.notConfigured'), type: ActivityType.Custom }]
         });
         return;
@@ -65,19 +65,14 @@ export default async (client) => {
           playermax: data.players.max
         });
 
-        // Make sure variables are actually replaced
-        const finalStatusText = statusText
-          .replace(/{playeronline}/g, data.players.online)
-          .replace(/{playermax}/g, data.players.max);
-
-        logger.debug(`BotStatus: Generated status text: "${finalStatusText}"`);
+        logger.debug(`BotStatus: Generated status text: "${statusText}"`);
 
         // Update Discord presence
         presenceData = await client.user.setPresence({
           status: presence.status.online,
           activities: [
             {
-              name: finalStatusText,
+              name: statusText,
               type: ActivityType[presence.activity],
             },
           ],

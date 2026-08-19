@@ -3,7 +3,7 @@ import config from '../../../config.js';
 import serverDataManager from '../../services/serverDataManager.js';
 import logger from '../../utils/logger.js';
 import languageService from '../../services/languageService.js';
-import { readData, writeData, updateData, getServerConfig } from '../../utils/dataStore.js';
+import { readData, updateData, getServerConfig } from '../../utils/dataStore.js';
 
 export default async (client) => {
   logger.info('PlayerCount: Initializing player count channel module');
@@ -44,13 +44,12 @@ export default async (client) => {
       }
 
       // Get the latest server configuration from data.json
-      const serverConfig = (await getServerConfig()) || { ...config };
+      const serverConfig = await getServerConfig();
 
-      // Check if server is actually configured (has IP)
       let statusName;
-      if (!serverConfig.mcserver.ip || serverConfig.mcserver.ip === '') {
+      if (!serverConfig) {
         statusName = languageService.getText('bot-status', 'playerCount.notConfigured');
-        logger.debug(`PlayerCount: Server not configured (no IP)`);
+        logger.debug('PlayerCount: No server configured in data.json');
       } else {
         logger.debug(`PlayerCount: Checking status for ${serverConfig.mcserver.ip}:${serverConfig.mcserver.port}`);
         const result = await serverDataManager.getServerData(serverConfig);
@@ -62,18 +61,10 @@ export default async (client) => {
             playermax: data.players.max
           });
 
-          // Make sure variables are actually replaced
-          statusName = translationTemplate
-            .replace(/{playeronline}/g, data.players.online)
-            .replace(/{playermax}/g, data.players.max);
+          statusName = translationTemplate;
 
           logger.debug(`PlayerCount: Server online with ${data.players.online}/${data.players.max} players`);
           logger.debug(`PlayerCount: Generated status name: "${statusName}"`);
-
-          if (statusName.includes('{playeronline}') || statusName.includes('{playermax}')) {
-            logger.warn('PlayerCount: Variables not replaced in the status name, using direct format');
-            statusName = `🟢 ${data.players.online}/${data.players.max}`;
-          }
         } else if (result && result.error) {
           statusName = languageService.getText('bot-status', 'playerCount.error');
           logger.debug(`PlayerCount: Server error: ${result.error}`);
@@ -124,25 +115,32 @@ export default async (client) => {
 
     logger.info('PlayerCount: Feature enabled, starting initialization');
 
-    // Initialize data.json structure if needed
-    let dataIDS = await readData();
+    // Initialize data.json structure only when something is actually missing,
+    // so a normal boot does not rewrite the file
+    const existing = await readData();
+    const needsInit =
+      !existing.playerCountStats ||
+      typeof existing.playerCountStats !== 'object' ||
+      !existing.autoChangeStatus;
 
-    if (!dataIDS.playerCountStats || typeof dataIDS.playerCountStats !== 'object') {
-      logger.info('PlayerCount: Initializing playerCountStats in data.json');
-      dataIDS.playerCountStats = {
-        channelId: config.playerCountCH.channelId,
-        lastUpdate: Date.now()
-      };
+    if (needsInit) {
+      await updateData((data) => {
+        if (!data.playerCountStats || typeof data.playerCountStats !== 'object') {
+          logger.info('PlayerCount: Initializing playerCountStats in data.json');
+          data.playerCountStats = {
+            channelId: config.playerCountCH.channelId,
+            lastUpdate: Date.now()
+          };
+        }
+
+        if (!data.autoChangeStatus) {
+          logger.debug('PlayerCount: Initializing autoChangeStatus array in data.json');
+          data.autoChangeStatus = [];
+        }
+      });
     } else {
       logger.debug('PlayerCount: Found existing playerCountStats in data.json');
     }
-
-    if (!dataIDS.autoChangeStatus) {
-      logger.debug('PlayerCount: Initializing autoChangeStatus array in data.json');
-      dataIDS.autoChangeStatus = [];
-    }
-
-    await writeData(dataIDS);
 
     // Update player count immediately
     logger.info('PlayerCount: Running initial update');

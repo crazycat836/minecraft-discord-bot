@@ -44,7 +44,6 @@
       "botStatusActivity": "Options d'activité de bot invalides. Doit être 'Playing', 'Listening', 'Watching' ou 'Competing'.",
       "mcType": "Type de serveur Minecraft invalide. Doit être 'java' ou 'bedrock'.",
       "mcName": "Le nom du serveur Minecraft n'a pas été spécifié.",
-      "mcVersion": "La version du serveur Minecraft n'a pas été spécifiée.",
       "guildID": "L'ID du serveur/guilde n'a pas été spécifiée ou est invalide.",
       "timeZone": "Le fuseau horaire spécifié dans le fichier de configuration n'est pas valide.",
       "slashCmdName": "Le nom fourni \"{givenCmdName}\" pour la commande \"{cmdName}\" n'est pas valide.\nVeuillez utiliser uniquement des lettres minuscules, majuscules, la première lettre en majuscule, des chiffres, des tirets bas et des tirets."

@@ -19,14 +19,18 @@ export default async (client) => {
 
   // Get dynamic server config
   const conf = await getServerConfig();
+  if (!conf) {
+    logger.info('Startup: No server configured in data.json yet, skipping server info log');
+    return;
+  }
   // Destructure mcserver configuration for clarity
-  const { ip: mcIp, port: mcPort, type: mcType, version: mcVersion } = conf.mcserver;
+  const { ip: mcIp, port: mcPort, type: mcType } = conf.mcserver;
 
   // Get server data and player list with error handling
   // Pass dynamic config to ensure we probe the right server
-  let data, isOnline;
+  let data, isOnline, version;
   try {
-    ({ data, isOnline } = await getServerDataAndPlayerList(conf.mcserver));
+    ({ data, isOnline, version } = await getServerDataAndPlayerList(conf.mcserver, true));
   } catch (error) {
     logger.error('Failed to fetch server data', error);
     return;
@@ -46,7 +50,7 @@ export default async (client) => {
     logger.info(
       serverInfoOnlineText
         .replace(/\{ip\}/gi, chalk.cyan.bold(formattedIp))
-        .replace(/\{version\}/gi, chalk.cyan.bold(mcVersion))
+        .replace(/\{version\}/gi, chalk.cyan.bold(version))
         .replace(/\{playersOnline\}/gi, chalk.cyan.bold(data.players.online))
         .replace(/\{playersMax\}/gi, chalk.cyan.bold(data.players.max))
         .replace(/\{motd_line1\}/gi, chalk.cyan.bold(motdLines[0] ?? ''))
