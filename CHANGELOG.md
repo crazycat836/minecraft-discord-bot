@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2026-08-19
+
+### Fixed
+- The server configuration was lost whenever the container was recreated, for example on every image update. `data.json` moved out of `src/` into a dedicated `data/` directory that can be mounted as a volume; an existing `src/data.json` is migrated automatically on startup
+- `npm run docker:deploy` could not run at all: the default buildx builder uses the `docker` driver, which rejects multi-platform builds. The script now provisions a `docker-container` builder when one is missing
+- The README documented `MC_SERVER_IP`, `MC_SERVER_NAME`, `MC_SERVER_VERSION` and the other `MC_SERVER_*` environment variables, none of which exist in `config.js`. The Minecraft server details are set from Discord with `/setstatus`
+
+### Changed
+- `docker:deploy` also tags the image with the package version, so a release can be rolled back to
+- The Docker Compose files mount `./data` so the configuration survives `docker compose down`
+
+### Security
+- Updated transitive dependencies: `ws`, `qs`, `form-data`, `brace-expansion` and `picomatch`. Production vulnerabilities are down from 15 to 3, all remaining ones inside the build tooling `commandkit` ships as runtime dependencies (`esbuild`, `tsup`), which this bot never executes
+
+### Removed
+- `README_zh-TW.md`
+
 ## [1.2.4] - 2026-08-19
 
 ### Fixed

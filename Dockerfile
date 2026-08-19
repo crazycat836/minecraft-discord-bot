@@ -29,7 +29,7 @@ RUN apk add --no-cache tini && \
 # Set working directory, hand /app to the runtime user, then drop privileges.
 # WORKDIR creates /app as root; without this chown the app cannot create /app/logs.
 WORKDIR /app
-RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app
+RUN mkdir -p /app/logs /app/data && chown -R nodejs:nodejs /app
 USER nodejs
 
 # Copy built files from builder stage

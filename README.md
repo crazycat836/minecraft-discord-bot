@@ -6,8 +6,6 @@
 [![Node Version](https://img.shields.io/node/v/minecraft-discord-bot?style=for-the-badge&color=5D6D7E)](package.json)
 [![Docker Pulls](https://img.shields.io/docker/pulls/crazycat836/minecraftrobot?style=for-the-badge&color=5D6D7E)](https://hub.docker.com/r/crazycat836/minecraftrobot)
 
-English | [繁體中文](README_zh-TW.md)
-
 A bot that connects your Minecraft server to Discord, providing real-time server status, player count, and various useful commands.
 
 [Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md)
@@ -77,14 +75,23 @@ The easiest way to get started is with a single Docker command:
 ```bash
 docker run -d \
   --name minecraft-discord-bot \
+  -v ./data:/app/data \
   -e DISCORD_BOT_TOKEN=your_token \
   -e DISCORD_GUILD_ID=your_guild_id \
-  -e MC_SERVER_NAME=your_server_name \
-  -e MC_SERVER_VERSION=your_server_version \
-  -e MC_SERVER_IP=your_server_ip \
   -e LANGUAGE_MAIN=en \
   crazycat836/minecraftrobot:latest
 ```
+
+The Minecraft server address is **not** an environment variable. Once the bot is running,
+set it from Discord with `/setstatus`:
+
+```
+/setstatus name:My Server ip:mc.example.com port:25565 type:Java
+```
+
+That configuration is stored in `/app/data/data.json`, which is why the `-v ./data:/app/data`
+mount above matters — without it the container loses its configuration every time it is
+recreated, for example when you pull a new image.
 
 ### Docker Environment Variable Setup Methods
 
@@ -93,11 +100,9 @@ When using Docker, there are two ways to set environment variables:
 1. **Using command line arguments:**
    ```bash
    docker run -d \
+     -v ./data:/app/data \
      -e DISCORD_BOT_TOKEN=your_token \
      -e DISCORD_GUILD_ID=your_guild_id \
-     -e MC_SERVER_NAME="Your Server Name" \
-     -e MC_SERVER_VERSION=1.20.4 \
-     -e MC_SERVER_IP=mc.example.com \
      -e LANGUAGE_MAIN=en \
      crazycat836/minecraftrobot:latest
    ```
@@ -108,15 +113,12 @@ When using Docker, there are two ways to set environment variables:
    DISCORD_BOT_TOKEN=your_token
    DISCORD_GUILD_ID=your_guild_id
    STATS_CHANNEL_ID=your_channel_id
-   MC_SERVER_NAME=Your Server Name
-   MC_SERVER_VERSION=1.20.4
-   MC_SERVER_IP=mc.example.com
    LANGUAGE_MAIN=en
    ```
    
    Then run:
    ```bash
-   docker run --env-file .env -d crazycat836/minecraftrobot:latest
+   docker run --env-file .env -v ./data:/app/data -d crazycat836/minecraftrobot:latest
    ```
 
 > **Important Note**: This project uses environment variables for all configuration settings to avoid exposing sensitive information in the codebase. The `config.js` file is included in `.gitignore` and `.dockerignore` to prevent accidental exposure of sensitive data. When deploying with Docker, make sure to provide all necessary environment variables as shown above.
@@ -128,12 +130,6 @@ For a complete list of available environment variables, see the table below:
 | DISCORD_BOT_TOKEN | Discord bot token (required) | none |
 | DISCORD_GUILD_ID | Discord server ID (required) | none |
 | STATS_CHANNEL_ID | Channel ID for player count (Must be set here, cannot be changed via command) | none |
-| MC_SERVER_IP | Minecraft server IP (required) | none |
-| MC_SERVER_PORT | Minecraft server port | 25565 |
-| MC_SERVER_TYPE | Server type (java/bedrock) | java |
-| MC_SERVER_NAME | Server name (required) | none |
-| MC_SERVER_VERSION | Server version (required) | none |
-| MC_SERVER_SITE | Server website URL | "" |
 | LANGUAGE_MAIN | Main language for the bot | en |
 | UPDATE_INTERVAL | Update interval in seconds | 60 |
 | PLAYER_COUNT_ENABLED | Enable player count feature | true |

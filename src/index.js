@@ -10,7 +10,7 @@ import process from 'node:process';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import serverDataManager from './services/serverDataManager.js';
-import { getServerConfig } from './utils/dataStore.js';
+import { getServerConfig, migrateLegacyDataFile } from './utils/dataStore.js';
 
 // Import the logger and translation systems
 import logger from './utils/logger.js';
@@ -499,6 +499,9 @@ export {
 // ---------------------
 // CommandKit Initialization & Bot Login
 // ---------------------
+
+// Must run before CommandKit loads the events, which read data.json immediately
+await migrateLegacyDataFile();
 
 new CommandKit({
   client,

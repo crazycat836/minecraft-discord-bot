@@ -4,13 +4,54 @@ import { fileURLToPath } from 'url';
 import logger from './logger.js';
 import config from '../../config.js';
 
-const DATA_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data.json');
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+// data.json lives outside src/ so the directory can be mounted as a volume without
+// shadowing the application code. Without a mount it is lost whenever the container
+// is recreated, which silently wipes the server configuration on every image update.
+const DATA_DIR = path.join(MODULE_DIR, '..', '..', 'data');
+const DATA_PATH = path.join(DATA_DIR, 'data.json');
+
+// Where data.json lived before v1.2.5
+const LEGACY_DATA_PATH = path.join(MODULE_DIR, '..', 'data.json');
 
 /**
  * Returns the absolute path to data.json.
  */
 export function getDataPath() {
   return DATA_PATH;
+}
+
+/**
+ * Moves data.json from its pre-1.2.5 location (src/data.json) into the mountable
+ * data/ directory. Call once at startup; a no-op once the file has moved.
+ */
+export async function migrateLegacyDataFile() {
+  try {
+    await fsPromises.access(DATA_PATH);
+    return false;
+  } catch {
+    // Not on the new path yet, see whether there is anything to move
+  }
+
+  let legacyContent;
+  try {
+    legacyContent = await fsPromises.readFile(LEGACY_DATA_PATH, 'utf8');
+  } catch {
+    return false;
+  }
+
+  try {
+    await fsPromises.mkdir(DATA_DIR, { recursive: true });
+    await fsPromises.writeFile(DATA_PATH, legacyContent, 'utf8');
+    // Best effort: keeping the old file around would only confuse the next reader
+    await fsPromises.rename(LEGACY_DATA_PATH, `${LEGACY_DATA_PATH}.migrated`).catch(() => {});
+    logger.info(`DataStore: Migrated data.json to ${DATA_PATH}`);
+    return true;
+  } catch (err) {
+    logger.error(`DataStore: Failed to migrate data.json: ${err.message}`);
+    return false;
+  }
 }
 
 /**
@@ -57,6 +98,7 @@ export async function readData() {
  */
 async function writeData(data) {
   try {
+    await fsPromises.mkdir(DATA_DIR, { recursive: true });
     await fsPromises.writeFile(DATA_PATH, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
     logger.error(`DataStore: Failed to write data.json: ${err.message}`);
@@ -133,4 +175,12 @@ export async function getServerConfig() {
   return null;
 }
 
-export default { getDataPath, readData, updateData, setServerSetting, getSite, getServerConfig };
+export default {
+  getDataPath,
+  migrateLegacyDataFile,
+  readData,
+  updateData,
+  setServerSetting,
+  getSite,
+  getServerConfig
+};

@@ -1,6 +1,6 @@
 {
   "name": "minecraft-discord-bot",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "A feature-rich and highly customizable Discord bot that provides information about your Minecraft server.",
   "main": "src/index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "docker:dev": "docker compose up",
     "docker:dev:logs": "docker compose logs -f",
     "docker:dev:stop": "docker compose down",
-    "docker:deploy": "docker buildx build --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest --push ."
+    "docker:deploy": "docker buildx inspect multiarch >/dev/null 2>&1 || docker buildx create --name multiarch --driver docker-container --bootstrap && docker buildx build --builder multiarch --platform linux/amd64,linux/arm64 -t crazycat836/minecraftrobot:latest -t crazycat836/minecraftrobot:$npm_package_version --push ."
   },
   "type": "module",
   "engines": {

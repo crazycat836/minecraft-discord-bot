@@ -47,5 +47,7 @@ services:
     volumes:
       - ./src:/app/src
       - ./locales:/app/locales
+      # Keeps the server configuration across container recreation
+      - ./data:/app/data
     # 覆蓋指令，使用 node 的 watch 模式以支援熱重載
     command: ["node", "--watch", "src/index.js"] 

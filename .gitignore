@@ -41,7 +41,8 @@ cursor.json
 release_notes.md
 
 # Runtime data files
-src/data.json 
+data/
+src/data.json* 
 
 # Docker configuration with sensitive information
 docker-compose.yml 
