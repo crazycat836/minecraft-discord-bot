@@ -510,6 +510,41 @@ new CommandKit({
   bulkRegister: true,
 });
 
-client.login(config.bot.token).catch((error) => {
-  logger.error('Bot login error:', error);
-});
+/**
+ * Waits until CommandKit has attached its clientReady listener.
+ *
+ * CommandKit registers listeners asynchronously: its constructor first awaits
+ * reading and importing every file under events/, and only then calls
+ * client.on(). clientReady fires once and is never replayed, so on slow storage
+ * the gateway can reach READY before the listener exists — the bot logs in and
+ * answers commands, but the clientReady handlers never run and AutoChangeStatus
+ * and PlayerCount never start their update loops.
+ *
+ * Gives up after timeoutMs so a missing or empty events/ cannot keep the bot
+ * offline for good.
+ */
+const waitForEventHandlers = async (timeoutMs = 30000) => {
+  const startedAt = Date.now();
+  const deadline = startedAt + timeoutMs;
+
+  while (client.listenerCount('clientReady') === 0) {
+    if (Date.now() >= deadline) {
+      logger.warn(`Startup: no clientReady handler after ${timeoutMs}ms, connecting anyway`);
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+
+  logger.debug(`Startup: event handlers registered after ${Date.now() - startedAt}ms`);
+};
+
+// Deliberately not awaited: the event files import this module back, so their
+// imports only settle once this module has finished evaluating. Awaiting here
+// would deadlock until the timeout above expired.
+(async () => {
+  await waitForEventHandlers();
+
+  client.login(config.bot.token).catch((error) => {
+    logger.error('Bot login error:', error);
+  });
+})();
