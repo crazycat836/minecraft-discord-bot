@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.6] - 2026-08-21
 
 ### Fixed
 - On slow storage (NAS, spinning disks) the bot logged in and answered commands but never started its update loops: the status message stopped refreshing and the player count channel was never renamed. CommandKit attaches its event listeners only after importing every file under `events/`, and `clientReady` fires once — if the gateway got there first, those handlers were lost. The gateway connection now waits for the listeners to be in place
