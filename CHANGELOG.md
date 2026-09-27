@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2026-09-27
+
+### Fixed
+- The player count channel could keep showing an old status (for example "offline") long after the server came back. Discord allows only two channel renames per 10 minutes, and when that limit is hit discord.js waits instead of failing. Every 60-second cycle queued another rename behind it, so the backlog grew faster than it drained and the channel name fell further behind. Only one rename is now in flight at a time; the next cycle after it completes checks the server again
+
 ## [1.2.6] - 2026-08-21
 
 ### Fixed
