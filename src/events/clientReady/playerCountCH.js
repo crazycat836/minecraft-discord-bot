@@ -8,6 +8,8 @@ import { readData, updateData, getServerConfig } from '../../utils/dataStore.js'
 export default async (client) => {
   logger.info('PlayerCount: Initializing player count channel module');
 
+  let renameInFlight = false;
+
   // Function to update player count channel
   // This updates the name of a voice/text channel to specific formats (e.g., "🟢 Online: 5/20")
   async function playerCountUpdate(channelId) {
@@ -74,18 +76,24 @@ export default async (client) => {
         }
       }
 
-      // Only update if the name has changed to avoid hitting rate limits
-      // Discord channel rename rate limit is 2 per 10 minutes per channel
-      if (channel.name !== statusName) {
+      // Discord allows 2 renames per 10 minutes per channel. When the limit is hit,
+      // discord.js does not throw — setName() silently waits (up to ~10 minutes).
+      // Meanwhile channel.name still holds the old value, so without this guard every
+      // cycle queues another rename and the channel falls further and further behind
+      // the real status. Allow only one rename at a time; the cycle after it finishes
+      // re-checks the server and renames again if the status changed in between.
+      if (renameInFlight) {
+        logger.debug(`PlayerCount: Rename still waiting on Discord rate limit, skipping this cycle (wanted "${statusName}")`);
+      } else if (channel.name !== statusName) {
         logger.info(`PlayerCount: Updating channel name from "${channel.name}" to "${statusName}"`);
+        renameInFlight = true;
         try {
           await channel.setName(statusName);
           logger.info(`PlayerCount: Successfully updated channel name to "${statusName}"`);
         } catch (error) {
           logger.error(`PlayerCount: Discord API error updating channel name: ${error.message}`, error);
-          if (error.code === 30000) {
-            logger.warn('PlayerCount: Rate limit hit for channel rename - Discord limits channel name changes to 2 per 10 minutes');
-          }
+        } finally {
+          renameInFlight = false;
         }
       } else {
         logger.debug(`PlayerCount: Channel name already up to date (${statusName})`);
