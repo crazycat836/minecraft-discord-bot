@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2026-09-29
+
+### Changed
+- The Docker image is smaller: 58.6 MB compressed, down from 66.3 MB. The build tools `commandkit` ships as runtime dependencies (`tsup`, `esbuild`, `rollup`, `sucrase`) are no longer included, since the bot never loads them, and the runtime stage is plain Alpine with only the `node` binary instead of the full Node image with npm, yarn and corepack
+- Node.js upgraded from 23 (end of life) to 24 LTS
+
 ## [1.2.7] - 2026-09-27
 
 ### Fixed
