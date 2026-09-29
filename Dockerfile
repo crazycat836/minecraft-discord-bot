@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 # Build stage
-FROM node:23-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -10,8 +10,12 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies with cache mount
+# commandkit lists tsup as a runtime dependency, but only its CLI uses it;
+# the library the bot imports never loads these build tools, so drop them.
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev --no-audit --no-fund
+    npm ci --omit=dev --no-audit --no-fund && \
+    rm -rf node_modules/tsup node_modules/esbuild node_modules/@esbuild \
+           node_modules/rollup node_modules/@rollup node_modules/sucrase
 
 # Copy only necessary files
 COPY src ./src
@@ -19,10 +23,15 @@ COPY locales ./locales
 COPY config.js ./
 
 # Production stage
-FROM node:23-alpine AS runner
+# Plain Alpine plus the node binary only: the runtime never uses npm, yarn or corepack.
+# Keep this Alpine version in step with the one node:24-alpine is built on,
+# otherwise the node binary may not match the system libstdc++.
+FROM alpine:3.24 AS runner
 
-# Install tini and create non-root user in one layer
-RUN apk add --no-cache tini && \
+COPY --from=builder /usr/local/bin/node /usr/local/bin/node
+
+# Install node's shared libraries and tini, and create non-root user in one layer
+RUN apk add --no-cache libstdc++ tini && \
     addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs
 
